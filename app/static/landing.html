@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="data:,">
+<title>SafeSignal</title>
+<style>
+  :root {
+    --bg:#f4f2ee; --card:#ffffff; --ink:#1d2024; --muted:#6a6f78; --faint:#9aa0a8;
+    --accent:#5a4fcf; --accent-ink:#ffffff; --accent-soft:#eeecfb;
+    --safe:#23764a; --safe-soft:#e3f3e9; --warn:#c0392b; --warn-soft:#fdeceb; --line:#e6e2db;
+    --shadow:0 1px 2px rgba(20,20,30,.05), 0 8px 30px rgba(20,20,30,.07);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#14151a; --card:#1d1f26; --ink:#eceef2; --muted:#a2a7b2; --faint:#757b87;
+      --accent:#8b82f0; --accent-ink:#14151a; --accent-soft:#2a2840;
+      --safe:#6fcf97; --safe-soft:#1d3327; --warn:#ff8a80; --warn-soft:#3a1f1f; --line:#2c2f38;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.3);
+    }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; display:flex; flex-direction:column;
+         font:16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+         background:var(--bg); color:var(--ink); -webkit-font-smoothing:antialiased; }
+  header { display:flex; align-items:center; justify-content:space-between; padding:14px 24px; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:17px; }
+  .mark { width:34px; height:34px; border-radius:10px; background:var(--accent-soft); color:var(--accent);
+          display:grid; place-items:center; }
+  #exit { background:var(--warn); color:#fff; border:0; border-radius:10px; padding:9px 18px;
+          font:inherit; font-weight:700; font-size:14px; cursor:pointer; }
+  main { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+         padding:10px 20px 30px; text-align:center; }
+  h1 { font-size:clamp(32px, 6vw, 52px); line-height:1.08; letter-spacing:-.025em; margin:0 0 12px; }
+  h1 span { color:var(--accent); }
+  .lede { font-size:19px; color:var(--muted); margin:0 0 26px; }
+
+  /* illustration */
+  .scene { width:min(640px, 100%); margin:0 0 26px; }
+  .scene svg { width:100%; height:auto; display:block; }
+  .scene text { font-family:inherit; font-size:13px; font-weight:600; fill:var(--muted); }
+
+  .start { display:inline-block; background:var(--accent); color:var(--accent-ink); text-decoration:none;
+           font-weight:700; font-size:18px; padding:16px 38px; border-radius:16px;
+           box-shadow:0 6px 20px rgba(90,79,207,.3); }
+  .start:hover { filter:brightness(1.06); }
+
+  /* 3-step flow */
+  .flow { display:flex; align-items:center; justify-content:center; gap:6px; margin:36px 0 0; flex-wrap:wrap; }
+  .fstep { display:flex; flex-direction:column; align-items:center; gap:8px; width:120px; }
+  .ico { width:64px; height:64px; border-radius:20px; display:grid; place-items:center;
+         background:var(--card); border:1px solid var(--line); box-shadow:var(--shadow); color:var(--accent); }
+  .ico.ok { color:var(--safe); }
+  .fstep b { font-size:14px; }
+  .arrow { color:var(--faint); font-size:22px; margin-bottom:28px; }
+
+  /* trust row */
+  .trust { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:30px; }
+  .t { display:flex; align-items:center; gap:7px; font-size:13.5px; font-weight:600; color:var(--muted);
+       background:var(--card); border:1px solid var(--line); border-radius:999px; padding:7px 14px; }
+  .t svg { color:var(--safe); flex:none; }
+  footer { text-align:center; font-size:13px; color:var(--faint); padding:14px 24px 22px; }
+  @media (max-width: 560px) { .arrow { display:none; } .fstep { width:100px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="mark" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></div>
+    SafeSignal
+  </div>
+  <button id="exit" title="Leave immediately (Esc twice)">Quick Exit</button>
+</header>
+
+<main>
+  <h1>Who can see <span>your phone?</span></h1>
+  <p class="lede">Find hidden sharing. Close it safely.</p>
+
+  <!-- Picture: your phone → hidden links → their device, then SafeSignal shields it -->
+  <div class="scene" aria-hidden="true">
+    <svg viewBox="0 0 640 170">
+      <!-- your phone -->
+      <rect x="40" y="25" width="74" height="122" rx="14" fill="var(--card)" stroke="var(--ink)" stroke-width="3"/>
+      <rect x="66" y="34" width="22" height="4" rx="2" fill="var(--faint)"/>
+      <!-- pin on phone -->
+      <path d="M77 62c-9 0-15 7-15 15 0 11 15 25 15 25s15-14 15-25c0-8-6-15-15-15z" fill="var(--accent)"/>
+      <circle cx="77" cy="77" r="5" fill="var(--card)"/>
+      <!-- message lines -->
+      <rect x="56" y="112" width="42" height="7" rx="3.5" fill="var(--accent-soft)"/>
+      <rect x="56" y="124" width="30" height="7" rx="3.5" fill="var(--accent-soft)"/>
+      <text x="77" y="166" text-anchor="middle">You</text>
+
+      <!-- hidden links (red dashed) -->
+      <path d="M118 62 C 200 30, 260 30, 300 62" fill="none" stroke="var(--warn)" stroke-width="3" stroke-dasharray="7 7"/>
+      <path d="M118 112 C 200 140, 260 140, 300 112" fill="none" stroke="var(--warn)" stroke-width="3" stroke-dasharray="7 7"/>
+      <text x="209" y="30" text-anchor="middle" style="fill:var(--warn)">location sharing</text>
+      <text x="209" y="152" text-anchor="middle" style="fill:var(--warn)">old iPad still signed in</text>
+
+      <!-- shield cutting the links -->
+      <circle cx="320" cy="87" r="38" fill="var(--safe-soft)"/>
+      <path d="M320 58l22 9v15c0 14-9 26-22 31-13-5-22-17-22-31V67l22-9z" fill="var(--safe)"/>
+      <path d="M310 86l7 7 13-13" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+      <!-- faded links beyond shield -->
+      <path d="M362 62 C 420 40, 470 40, 520 62" fill="none" stroke="var(--line)" stroke-width="3" stroke-dasharray="7 7"/>
+      <path d="M362 112 C 420 134, 470 134, 520 112" fill="none" stroke="var(--line)" stroke-width="3" stroke-dasharray="7 7"/>
+
+      <!-- their device (faded) -->
+      <rect x="524" y="40" width="92" height="94" rx="12" fill="var(--card)" stroke="var(--faint)" stroke-width="3"/>
+      <circle cx="570" cy="80" r="16" fill="none" stroke="var(--faint)" stroke-width="3"/>
+      <circle cx="570" cy="80" r="5" fill="var(--faint)"/>
+      <line x1="550" y1="100" x2="590" y2="60" stroke="var(--faint)" stroke-width="3"/>
+      <text x="570" y="160" text-anchor="middle">Them</text>
+    </svg>
+  </div>
+
+  <a class="start" href="/chat">Start a private check →</a>
+
+  <!-- 3 steps -->
+  <div class="flow">
+    <div class="fstep">
+      <div class="ico"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></div>
+      <b>Tell us</b>
+    </div>
+    <div class="arrow">→</div>
+    <div class="fstep">
+      <div class="ico"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="3"/><circle cx="12" cy="11" r="3"/><path d="M14.2 13.2L16 15"/></svg></div>
+      <b>Check settings</b>
+    </div>
+    <div class="arrow">→</div>
+    <div class="fstep">
+      <div class="ico ok"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></div>
+      <b>Get a safe plan</b>
+    </div>
+  </div>
+
+  <!-- trust -->
+  <div class="trust">
+    <div class="t"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Nothing saved</div>
+    <div class="t"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 6.1A10 10 0 0 1 22 12s-1 2-3 4"/><path d="M6.6 6.6C3.9 8.4 2 12 2 12s4 7 10 7c1.6 0 3-.4 4.3-1"/></svg>Flags what they'd notice</div>
+    <div class="t"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>Quick exit anytime</div>
+  </div>
+</main>
+<footer>In immediate danger? Call your local emergency number.</footer>
+<script>
+function quickExit() { document.body.innerHTML = ""; location.replace("https://weather.com"); }
+document.getElementById("exit").addEventListener("click", quickExit);
+let lastEsc = 0;
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  const now = Date.now();
+  if (now - lastEsc < 600) quickExit();
+  lastEsc = now;
+});
+</script>
+</body>
+</html>

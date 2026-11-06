@@ -7,87 +7,239 @@
 <link rel="icon" href="data:,">
 <title>SafeSignal</title>
 <style>
-  :root { --bg:#f7f6f3; --card:#fff; --ink:#222; --muted:#666; --accent:#3b5bdb;
-          --safe:#2b8a3e; --warn:#c92a2a; --line:#e3e1dc; }
-  * { box-sizing: border-box; }
-  body { margin:0; font:15px/1.5 system-ui, -apple-system, sans-serif; background:var(--bg); color:var(--ink); }
-  header { display:flex; align-items:center; justify-content:space-between; padding:10px 18px;
-           background:var(--card); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5; }
-  header h1 { font-size:18px; margin:0; }
-  #exit { background:var(--warn); color:#fff; border:0; border-radius:6px; padding:8px 16px;
-          font-weight:600; cursor:pointer; }
-  main { display:grid; grid-template-columns: 1fr 360px; gap:16px; padding:16px; height:calc(100vh - 56px); }
-  @media (max-width: 860px) { main { grid-template-columns:1fr; height:auto; } }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; }
-  #chat { display:flex; flex-direction:column; min-height:400px; }
-  #log { flex:1; overflow-y:auto; padding:16px; }
-  .msg { max-width:80%; padding:10px 14px; border-radius:12px; margin:6px 0; white-space:pre-wrap; }
-  .user { background:var(--accent); color:#fff; margin-left:auto; border-bottom-right-radius:3px; }
-  .bot  { background:#f0efeb; border-bottom-left-radius:3px; }
-  .sys  { color:var(--muted); font-size:13px; text-align:center; max-width:100%; }
-  form#send { display:flex; gap:8px; padding:12px; border-top:1px solid var(--line); }
-  #text { flex:1; padding:10px; border:1px solid var(--line); border-radius:8px; font:inherit; resize:none; }
-  button.primary { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:0 18px; cursor:pointer; }
-  button:disabled { opacity:.5; cursor:default; }
-  #upload { display:none; padding:12px; border-top:1px dashed var(--line); background:#fbfaf7; }
-  #upload p { margin:0 0 8px; font-size:13px; color:var(--muted); }
-  aside { overflow-y:auto; padding:14px; }
-  aside h2 { font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:16px 0 6px; }
-  aside h2:first-child { margin-top:0; }
-  .badge { display:inline-block; padding:3px 10px; border-radius:999px; font-size:13px; font-weight:600; background:#eee; }
-  .badge.covert { background:#fff4e6; color:#d9480f; }
-  .badge.lockdown { background:#e6fcf5; color:#087f5b; }
-  .chip { font-size:11px; padding:1px 8px; border-radius:999px; margin-left:6px; font-weight:600; }
-  .chip.reported { background:#f1f3f5; color:#495057; }
-  .chip.plausible { background:#fff3bf; color:#8f6b00; }
-  .chip.verified { background:#d3f9d8; color:var(--safe); }
+  :root {
+    --bg:#f4f2ee; --card:#ffffff; --ink:#1d2024; --muted:#6a6f78; --faint:#9aa0a8;
+    --accent:#5a4fcf; --accent-ink:#ffffff; --accent-soft:#eeecfb;
+    --safe:#23764a; --safe-soft:#e3f3e9; --warn:#b42318; --warn-soft:#fdeceb;
+    --amber:#8a5a00; --amber-soft:#fff4d8; --line:#e6e2db; --bubble:#f2f0ec;
+    --shadow:0 1px 2px rgba(20,20,30,.05), 0 4px 16px rgba(20,20,30,.05);
+    --radius:16px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#14151a; --card:#1d1f26; --ink:#eceef2; --muted:#a2a7b2; --faint:#757b87;
+      --accent:#8b82f0; --accent-ink:#14151a; --accent-soft:#2a2840;
+      --safe:#6fcf97; --safe-soft:#1d3327; --warn:#ff8a80; --warn-soft:#3a1f1f;
+      --amber:#f2c66d; --amber-soft:#3a3020; --line:#2c2f38; --bubble:#262933;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+    }
+  }
+  * { box-sizing:border-box; }
+  html, body { height:100%; }
+  body { margin:0; font:15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+         background:var(--bg); color:var(--ink); -webkit-font-smoothing:antialiased; }
+  button { font:inherit; }
+
+  /* ---------- header ---------- */
+  header { display:flex; align-items:center; justify-content:space-between; gap:12px;
+           padding:12px 22px; background:var(--card); border-bottom:1px solid var(--line);
+           position:sticky; top:0; z-index:5; }
+  .brand { display:flex; align-items:center; gap:12px; min-width:0; }
+  .brand .mark { width:36px; height:36px; border-radius:11px; background:var(--accent-soft);
+                 color:var(--accent); display:grid; place-items:center; flex:none; }
+  header h1 { font-size:18px; margin:0; letter-spacing:-.01em; line-height:1.2; }
+  .brand .tag { font-size:12.5px; color:var(--muted); line-height:1.2; }
+  .head-right { display:flex; align-items:center; gap:10px; }
+  .private { font-size:12.5px; color:var(--safe); background:var(--safe-soft); padding:5px 11px;
+             border-radius:999px; font-weight:600; white-space:nowrap; }
+  #exit { background:var(--warn); color:#fff; border:0; border-radius:10px; padding:9px 18px;
+          font-weight:700; cursor:pointer; box-shadow:0 2px 8px rgba(180,35,24,.25); white-space:nowrap; }
+  #exit:hover { filter:brightness(1.07); }
+
+  /* ---------- layout ---------- */
+  main { display:grid; grid-template-columns:minmax(0,1fr) 380px; gap:18px; padding:18px 22px;
+         max-width:1320px; margin:0 auto; height:calc(100vh - 62px); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); }
+
+  /* ---------- chat ---------- */
+  #chat { display:flex; flex-direction:column; min-height:420px; overflow:hidden; }
+  #log { flex:1; overflow-y:auto; padding:22px 22px 10px; scroll-behavior:smooth; }
+  .msg { max-width:78%; padding:11px 15px; border-radius:18px; margin:8px 0; white-space:pre-wrap;
+         word-wrap:break-word; animation:pop .18s ease-out; }
+  @keyframes pop { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+  .user { background:var(--accent); color:var(--accent-ink); margin-left:auto; border-bottom-right-radius:6px; }
+  .bot  { background:var(--bubble); border-bottom-left-radius:6px; }
+  .sys  { color:var(--muted); font-size:13px; text-align:center; max-width:560px; margin:4px auto 14px;
+          background:transparent; border:1px dashed var(--line); border-radius:12px; padding:10px 14px; }
+
+  form#send { display:flex; gap:10px; padding:14px; border-top:1px solid var(--line); background:var(--card); }
+  #text { flex:1; padding:12px 14px; border:1px solid var(--line); border-radius:14px; font:inherit;
+          resize:none; background:var(--bg); color:var(--ink); outline:none; transition:border-color .15s, box-shadow .15s; }
+  #text:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  button.primary { background:var(--accent); color:var(--accent-ink); border:0; border-radius:12px;
+                   padding:0 22px; cursor:pointer; font-weight:600; }
+  button.primary:hover { filter:brightness(1.06); }
+  button:disabled { opacity:.45; cursor:default; filter:none; }
+
+  /* screenshot upload panel */
+  #upload { display:none; margin:0 14px 12px; padding:14px; border:1.5px dashed var(--accent);
+            border-radius:14px; background:var(--accent-soft); }
+  #upload p { margin:0 0 10px; font-size:13px; color:var(--ink); }
+  #upload input[type=file] { font-size:13px; color:var(--muted); margin:0 8px 8px 0; max-width:100%; }
+  #upload input[type=file]::file-selector-button { border:1px solid var(--line); background:var(--card);
+            color:var(--ink); border-radius:10px; padding:7px 12px; margin-right:10px; cursor:pointer; font:inherit; }
+  .btn-small { padding:7px 16px !important; }
+  .btn-ghost { padding:7px 16px; border-radius:12px; border:1px solid var(--line); background:var(--card);
+               color:var(--ink); cursor:pointer; }
+
+  /* ---------- side panel ---------- */
+  aside { overflow-y:auto; padding:8px 18px 18px; }
+  aside h2 { font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--faint);
+             margin:20px 0 8px; padding-top:16px; border-top:1px solid var(--line); font-weight:700; }
+  aside h2:first-child { border-top:0; padding-top:8px; margin-top:4px; }
+  .badge { display:inline-block; padding:5px 12px; border-radius:999px; font-size:13px; font-weight:600;
+           background:var(--bubble); color:var(--muted); }
+  .badge.covert { background:var(--amber-soft); color:var(--amber); }
+  .badge.lockdown { background:var(--safe-soft); color:var(--safe); }
+  .chip { font-size:11px; padding:2px 9px; border-radius:999px; margin-left:8px; font-weight:700;
+          text-transform:capitalize; white-space:nowrap; }
+  .chip.reported { background:var(--bubble); color:var(--muted); }
+  .chip.plausible { background:var(--amber-soft); color:var(--amber); }
+  .chip.verified { background:var(--safe-soft); color:var(--safe); }
   ul.list { list-style:none; padding:0; margin:0; }
-  ul.list li { padding:6px 0; border-bottom:1px solid var(--line); font-size:14px; }
-  .empty { color:var(--muted); font-size:13px; font-style:italic; }
-  .step { padding:8px 0; border-bottom:1px solid var(--line); font-size:14px; }
-  .step .t { font-weight:600; }
-  .step .lbl { font-size:11px; font-weight:700; padding:1px 8px; border-radius:999px; margin-right:6px; }
-  .lbl.safe { background:#d3f9d8; color:var(--safe); }
-  .lbl.warn { background:#ffe3e3; color:var(--warn); }
-  .step .d { color:var(--muted); font-size:13px; margin-top:3px; }
-  .step .src { color:var(--muted); font-size:11px; margin-top:3px; }
-  .subhead { font-size:12px; font-weight:700; color:var(--warn); margin:10px 0 2px; }
-  .confirm { background:#fff; border:1px solid var(--accent); border-radius:12px; padding:10px 14px;
-             margin:6px 0; max-width:85%; font-size:14px; }
-  .confirm .row { margin:3px 0; }
-  .confirm .k { font-weight:600; }
-  .confirm .btns { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
-  .confirm button { border-radius:8px; padding:6px 14px; cursor:pointer; border:1px solid var(--line); background:#fff; }
-  .confirm button.yes { background:var(--safe); color:#fff; border:0; }
-  .confirm textarea { width:100%; margin-top:8px; font:inherit; padding:6px; border:1px solid var(--line); border-radius:6px; }
-  #export-box label { font-size:13px; display:flex; gap:6px; align-items:flex-start; margin:6px 0; }
-  #export-box .warn { font-size:12px; color:var(--muted); }
-  #export-btn { margin-top:6px; padding:6px 12px; border-radius:8px; border:1px solid var(--line);
-                background:#fff; cursor:pointer; }
-  #export-view { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:20;
-                 align-items:center; justify-content:center; }
-  #export-view .sheet { background:#fff; border-radius:10px; width:min(760px, 94vw);
-                        max-height:88vh; display:flex; flex-direction:column; }
-  #export-view pre { margin:0; padding:16px; overflow:auto; font-size:13px; white-space:pre-wrap; }
-  #export-view .bar { display:flex; gap:8px; padding:10px 16px; border-top:1px solid var(--line);
+  ul.list li { padding:8px 0; border-bottom:1px solid var(--line); font-size:14px; display:flex;
+               align-items:center; justify-content:space-between; gap:8px; }
+  ul.list li:last-child { border-bottom:0; }
+  #exposed li, #resources li { text-transform:none; }
+  #exposed li::before { content:""; width:7px; height:7px; border-radius:50%; background:var(--warn);
+                        flex:none; margin-right:2px; }
+  #exposed li { justify-content:flex-start; }
+  #exposed li.empty::before { display:none; }
+  .empty { color:var(--faint) !important; font-size:13px; font-style:italic; }
+
+  /* plan steps */
+  .step { padding:12px 12px 12px 14px; margin:8px 0; font-size:14px; border:1px solid var(--line);
+          border-left:4px solid var(--safe); border-radius:12px; background:var(--card); }
+  .step:has(.lbl.warn) { border-left-color:var(--warn); }
+  .step .t { font-weight:650; margin-top:6px; }
+  .step .lbl { font-size:11px; font-weight:700; padding:2px 9px; border-radius:999px; }
+  .lbl.safe { background:var(--safe-soft); color:var(--safe); }
+  .lbl.warn { background:var(--warn-soft); color:var(--warn); }
+  .step .d { color:var(--muted); font-size:13px; margin-top:4px; }
+  .step .src { color:var(--faint); font-size:11px; margin-top:6px; }
+  details.step summary { list-style:none; display:flex; gap:8px; align-items:flex-start; cursor:pointer; }
+  details.step summary::-webkit-details-marker { display:none; }
+  details.step .num { color:var(--faint); font-weight:700; font-size:13px; padding-top:2px; min-width:18px; }
+  details.step .head { flex:1; }
+  details.step .head .t { margin-top:0; }
+  details.step .head .lbl { display:inline-block; margin-top:5px; }
+  details.step .chev { color:var(--faint); font-size:12px; padding-top:3px; transition:transform .15s; }
+  details.step[open] .chev { transform:rotate(180deg); }
+  details.step .body { margin-top:8px; padding-top:8px; border-top:1px dashed var(--line); }
+  details.step .risk { color:var(--ink); }
+  .plan-sum { display:flex; gap:6px; flex-wrap:wrap; margin:4px 0 6px; }
+  .pill { font-size:12px; font-weight:700; padding:3px 10px; border-radius:999px; }
+  .pill.safe { background:var(--safe-soft); color:var(--safe); }
+  .pill.warn { background:var(--warn-soft); color:var(--warn); }
+  .count { font-weight:500; color:var(--faint); font-size:12px; }
+  .subhead { font-size:12px; font-weight:700; color:var(--warn); margin:16px 0 4px; text-transform:uppercase; letter-spacing:.05em; }
+  #plan > .d { color:var(--muted); font-size:13px; margin-top:8px; }
+
+  /* screenshot confirmation card */
+  .confirm { background:var(--card); border:1px solid var(--line); border-top:3px solid var(--accent);
+             border-radius:16px; padding:14px 16px; margin:10px 0; max-width:85%; font-size:14px; box-shadow:var(--shadow); }
+  .confirm .row { margin:4px 0; }
+  .confirm .row:first-child { font-weight:600; margin-bottom:8px; }
+  .confirm .k { font-weight:600; color:var(--muted); }
+  .confirm .btns { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .confirm button { border-radius:10px; padding:8px 16px; cursor:pointer; border:1px solid var(--line);
+                    background:var(--card); color:var(--ink); }
+  .confirm button.yes { background:var(--safe); color:#fff; border:0; font-weight:600; }
+  .confirm textarea { width:100%; margin-top:10px; font:inherit; padding:8px 10px; border:1px solid var(--line);
+                      border-radius:10px; background:var(--bg); color:var(--ink); }
+
+  /* notices */
+  .notice { background:var(--amber-soft); color:var(--ink); border:1px solid transparent; border-left:4px solid var(--amber);
+            border-radius:10px; padding:10px 12px; font-size:13px; margin:8px 0; }
+
+  /* caseworker summary */
+  #export-box { background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:12px; }
+  details.trace { margin-top:14px; border-top:1px solid var(--line); padding-top:8px; }
+  details.trace summary { cursor:pointer; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:600; }
+  details.trace .hint { font-size:12px; color:var(--muted); margin:6px 0; }
+  #trace { font:12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; white-space:pre-wrap; word-break:break-word; margin:0; max-height:320px; overflow:auto; background:#fbfaf7; border:1px solid var(--line); border-radius:8px; padding:8px; }
+  #trace .src { color:var(--accent); font-weight:600; }
+  #export-box label { font-size:13px; display:flex; gap:8px; align-items:flex-start; margin:8px 0; cursor:pointer; }
+  #export-box .warn { font-size:12.5px; color:var(--muted); }
+  #export-btn { margin-top:4px; padding:8px 14px; border-radius:10px; border:1px solid var(--line);
+                background:var(--card); color:var(--ink); cursor:pointer; font-weight:600; }
+  #export-view { display:none; position:fixed; inset:0; background:rgba(10,10,20,.55); z-index:20;
+                 align-items:center; justify-content:center; backdrop-filter:blur(2px); }
+  #export-view .sheet { background:var(--card); color:var(--ink); border-radius:16px; width:min(760px, 94vw);
+                        max-height:88vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,.3); }
+  #export-view pre { margin:0; padding:20px; overflow:auto; font-size:13px; white-space:pre-wrap; }
+  #export-view .bar { display:flex; gap:8px; padding:12px 18px; border-top:1px solid var(--line);
                       align-items:center; flex-wrap:wrap; }
-  #export-view .bar button { padding:6px 14px; border-radius:8px; border:1px solid var(--line);
-                             background:#fff; cursor:pointer; }
+  #export-view .bar button { padding:8px 14px; border-radius:10px; border:1px solid var(--line);
+                             background:var(--card); color:var(--ink); cursor:pointer; }
   #export-view .bar .note { font-size:12px; color:var(--muted); flex:1; min-width:200px; }
+
+  /* ---------- small screens ---------- */
+  @media (max-width: 900px) {
+    main { grid-template-columns:1fr; height:auto; padding:12px; gap:12px; }
+    #chat { height:72vh; }
+    .msg, .confirm { max-width:92%; }
+    .private { display:none; }
+    header { padding:10px 14px; }
+    .brand .tag { display:none; }
+  }
+
   @media print {
     body.printing > *:not(#export-view) { display:none !important; }
     body.printing #export-view { position:static; display:block !important; background:none; }
     body.printing #export-view .bar { display:none; }
-    body.printing #export-view .sheet { max-height:none; width:auto; }
+    body.printing #export-view .sheet { max-height:none; width:auto; box-shadow:none; }
   }
-  .notice { background:#fff9db; border:1px solid #ffe066; border-radius:8px; padding:8px 10px;
-            font-size:13px; margin:6px 0; }
+
+  /* ---------- colored side-panel sections ---------- */
+  aside { padding:12px 14px 16px; }
+  .sec { border:1px solid var(--line); border-radius:14px; margin:0 0 12px; overflow:hidden; background:var(--card); }
+  .sec > h2, .sec > summary > h2 {
+    margin:0; padding:9px 12px; border-top:0; font-size:12.5px; letter-spacing:.06em; text-transform:uppercase;
+    font-weight:800; display:flex; align-items:center; gap:8px; color:var(--sec-ink); background:var(--sec-bg); }
+  .sec .ic { font-size:15px; letter-spacing:0; }
+  .sec > .body, .sec > details > .body { padding:8px 12px 10px; }
+  .sec { --sec-bg:var(--bubble); --sec-ink:var(--muted); }
+  .sec-mode   { --sec-bg:#eeecfb; --sec-ink:#4b40b8; }
+  .sec-find   { --sec-bg:#fff4d8; --sec-ink:#7a5000; }
+  .sec-exp    { --sec-bg:#fdeceb; --sec-ink:#a2271c; }
+  .sec-plan   { --sec-bg:#e3f3e9; --sec-ink:#1d6b41; border-color:#bfe3cc; }
+  .sec-help   { --sec-bg:#e6f0fb; --sec-ink:#1f5ea8; }
+  .sec-rights { --sec-bg:#e2f4f3; --sec-ink:#13706b; }
+  .sec-sum, .sec-limits, .sec-trace { --sec-bg:var(--bubble); --sec-ink:var(--muted); }
+  @media (prefers-color-scheme: dark) {
+    .sec-mode   { --sec-bg:#2a2840; --sec-ink:#b9b2ff; }
+    .sec-find   { --sec-bg:#3a3020; --sec-ink:#f2c66d; }
+    .sec-exp    { --sec-bg:#3a1f1f; --sec-ink:#ff9b91; }
+    .sec-plan   { --sec-bg:#1d3327; --sec-ink:#7fdca6; border-color:#2c4a38; }
+    .sec-help   { --sec-bg:#1d2a3a; --sec-ink:#8ec1ff; }
+    .sec-rights { --sec-bg:#1c3332; --sec-ink:#7fd6cf; }
+  }
+  details.sec > summary { list-style:none; cursor:pointer; }
+  details.sec > summary::-webkit-details-marker { display:none; }
+  details.sec > summary > h2::after { content:"▸"; margin-left:auto; font-size:13px; transition:transform .15s; }
+  details.sec[open] > summary > h2::after { transform:rotate(90deg); }
+  details.sec.trace { margin-top:0; border-top:1px solid var(--line); padding-top:0; }
+  .mini { font-size:12px; font-weight:700; color:var(--muted); margin:10px 0 2px; }
+  .mini-note { font-size:12px; color:var(--muted); margin-bottom:6px; }
+  #export-box { background:transparent; border:0; padding:0; }
+  ul.limits { list-style:none; margin:0; padding:0; }
+  ul.limits li { display:flex; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); font-size:13px; color:var(--muted); }
+  ul.limits li:last-child { border-bottom:0; }
+  ul.limits b { color:var(--ink); }
+  .li-ic { font-size:16px; line-height:1.3; flex:none; }
 </style>
 </head>
 <body>
 <header>
-  <h1>SafeSignal</h1>
-  <button id="exit" title="Leave immediately (Esc twice)">Quick Exit</button>
+  <div class="brand">
+    <div class="mark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></div>
+    <div><h1>SafeSignal</h1><div class="tag">A private check of who can see what on your phone</div></div>
+  </div>
+  <div class="head-right">
+    <span class="private">Nothing is saved</span>
+    <button id="exit" title="Leave immediately (Esc twice)">Quick Exit</button>
+  </div>
 </header>
 <main>
   <section id="chat" class="card">
@@ -95,8 +247,8 @@
     <div id="upload">
       <p id="upload-hint">Screenshots saved on a phone that may be compromised can sync to someone else through shared iCloud Photos. If you can, photograph the screen with a safe device.</p>
       <input type="file" id="file" accept="image/png,image/jpeg,image/webp,image/gif">
-      <button class="primary" id="send-file" style="padding:6px 14px">Send screenshot</button>
-      <button id="skip-file" style="padding:6px 14px; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer">Not now</button>
+      <button class="primary btn-small" id="send-file">Send screenshot</button>
+      <button id="skip-file" class="btn-ghost">Not now</button>
     </div>
     <form id="send">
       <textarea id="text" rows="2" placeholder="Type here… (nothing is saved)"></textarea>
@@ -104,27 +256,78 @@
     </form>
   </section>
   <aside class="card">
-    <h2>Safety mode</h2>
-    <div id="mode"><span class="badge">Not set yet</span></div>
-    <h2>Findings</h2>
-    <ul class="list" id="findings"><li class="empty">Nothing recorded yet.</li></ul>
-    <div id="to-check-wrap" style="display:none">
-      <h2>Possible explanations to check</h2>
-      <ul class="list" id="to-check"></ul>
+    <div class="sec sec-mode">
+      <h2><span class="ic">🛡️</span>Safety mode</h2>
+      <div class="body"><div id="mode"><span class="badge">Not set yet</span></div></div>
     </div>
-    <h2>What may be exposed</h2>
-    <ul class="list" id="exposed"><li class="empty">—</li></ul>
-    <div id="unexplained"></div>
-    <h2>Plan</h2>
-    <div id="plan"><div class="empty">No plan yet.</div></div>
-    <h2>Support</h2>
-    <ul class="list" id="resources"><li class="empty">—</li></ul>
-    <h2>Caseworker summary</h2>
-    <div id="export-box">
-      <div class="warn">Technical findings only, with no conversation and no names, for sharing with an advocate. It's shown on screen and not saved anywhere.</div>
-      <label><input type="checkbox" id="export-consent"> I want to create this summary, and I'll only share it in a way the other person can't see. I won't save it to Downloads, a shared cloud or a shared email.</label>
-      <button id="export-btn" disabled>Show summary</button>
+
+    <div class="sec sec-find">
+      <h2><span class="ic">🔎</span>What we found</h2>
+      <div class="body">
+        <ul class="list" id="findings"><li class="empty">Nothing recorded yet.</li></ul>
+        <div id="to-check-wrap" style="display:none">
+          <div class="mini">Possible explanations to check</div>
+          <ul class="list" id="to-check"></ul>
+        </div>
+      </div>
     </div>
+
+    <div class="sec sec-exp">
+      <h2><span class="ic">⚠️</span>What may be exposed</h2>
+      <div class="body">
+        <ul class="list" id="exposed"><li class="empty">—</li></ul>
+        <div id="unexplained"></div>
+      </div>
+    </div>
+
+    <div class="sec sec-plan">
+      <h2><span class="ic">✅</span>Your safe plan</h2>
+      <div class="body"><div id="plan"><div class="empty">No plan yet.</div></div></div>
+    </div>
+
+    <div class="sec sec-help">
+      <h2><span class="ic">🤝</span>Where to get help</h2>
+      <div class="body"><ul class="list" id="resources"><li class="empty">—</li></ul></div>
+    </div>
+
+    <details id="rights-wrap" class="sec sec-rights trace" style="display:none">
+      <summary><h2><span class="ic">⚖️</span>Your rights <span id="rights-count" class="count"></span></h2></summary>
+      <div class="body">
+        <div class="mini-note">Official information for your region. Not legal advice; an advocate or a free legal helpline can explain what applies to you.</div>
+        <div id="rights"></div>
+      </div>
+    </details>
+
+    <details class="sec sec-sum">
+      <summary><h2><span class="ic">🧾</span>Summary for your advocate</h2></summary>
+      <div class="body">
+        <div id="export-box">
+          <div class="warn">Technical findings only, with no conversation and no names, for sharing with an advocate. It's shown on screen and not saved anywhere.</div>
+          <label><input type="checkbox" id="export-consent"> I want to create this summary, and I'll only share it in a way the other person can't see. I won't save it to Downloads, a shared cloud or a shared email.</label>
+          <button id="export-btn" disabled>Show summary</button>
+        </div>
+      </div>
+    </details>
+
+    <details class="sec sec-limits">
+      <summary><h2><span class="ic">ℹ️</span>What this tool can't do</h2></summary>
+      <div class="body">
+        <ul class="limits" id="limits">
+          <li><span class="li-ic">🚫</span><div><b>No spyware scan.</b> Scanners miss many of these apps and iPhones don't allow it. An expert clinic can help. Spyware on a jailbroken or rooted phone can survive a factory reset.</div></li>
+          <li><span class="li-ic">📱</span><div><b>Phone and accounts only.</b> Not smartwatches, rings, smart-home devices, cars, or hidden trackers beyond your phone's own alerts.</div></li>
+          <li><span class="li-ic">📧</span><div><b>Not email, social media or bank accounts.</b> Ask an advocate about forwarding rules, logged-in sessions and shared accounts.</div></li>
+          <li><span class="li-ic">✋</span><div><b>You stay in control.</b> It never changes anything for you, and nothing here is legal advice.</div></li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="sec sec-trace trace" id="trace-wrap">
+      <summary><h2><span class="ic">⚙️</span>Under the hood</h2></summary>
+      <div class="body">
+        <div class="hint">Claude listens and asks; deterministic code ranks causes, checks evidence levels and validates every plan. IDs and decisions only, never your words.</div>
+        <pre id="trace"></pre>
+      </div>
+    </details>
   </aside>
 </main>
 <div id="export-view" role="dialog" aria-modal="true">
@@ -187,6 +390,8 @@ function render(state) {
   fill("to-check", tc.map(f => { const e = li(f.label); e.style.color = "var(--muted)"; return e; }), "");
   fill("exposed", (state.exposed || []).map(x => li(x.replaceAll("_", " "))), "—");
 
+  renderRights(state.rights || []);
+  renderTrace(state.trace || []);
   renderUnexplained(state);
   renderPlan(state.plan);
 
@@ -204,6 +409,32 @@ function el(tag, cls, text) {
   return e;
 }
 
+function renderRights(items) {
+  $("rights-wrap").style.display = items.length ? "" : "none";
+  $("rights-count").textContent = items.length ? "(" + items.length + ")" : "";
+  const box = $("rights");
+  box.replaceChildren();
+  items.forEach(r => {
+    const d = el("div", "step");
+    d.appendChild(el("div", "", r.summary + (r.scope ? " (" + r.scope + ")" : "")));
+    let dom = r.source; try { dom = new URL(r.source).hostname; } catch (e) {}
+    d.appendChild(el("div", "src", "Source: " + dom +
+      (r.verified_on === "UNVERIFIED" ? " · not yet verified" : " · checked " + r.verified_on)));
+    box.appendChild(d);
+  });
+}
+
+function renderTrace(entries) {
+  const pre = $("trace");
+  pre.replaceChildren();
+  if (!entries.length) { pre.textContent = "(nothing yet)"; return; }
+  entries.forEach(e => {
+    pre.appendChild(el("span", "src", e.source + ": "));
+    pre.appendChild(document.createTextNode(e.text + "\n"));
+  });
+  pre.scrollTop = pre.scrollHeight;
+}
+
 function renderUnexplained(state) {
   const box = $("unexplained");
   box.replaceChildren();
@@ -214,17 +445,26 @@ function renderUnexplained(state) {
   }
 }
 
-function stepEl(s, n) {
-  const d = el("div", "step");
-  const top = el("div");
+function stepEl(s, n, open) {
+  const d = el("details", "step");
+  if (open) d.open = true;
   const safe = !s.may_notify_abuser;
-  top.appendChild(el("span", "lbl " + (safe ? "safe" : "warn"), s.label));
-  d.appendChild(top);
-  d.appendChild(el("div", "t", n + ". " + s.title));
-  s.steps.forEach(x => d.appendChild(el("div", "d", x)));
-  d.appendChild(el("div", "d", "⚠ " + s.risk_note));
-  d.appendChild(el("div", "src", "Source: " + s.source +
+  const sum = el("summary");
+  sum.appendChild(el("span", "num", n + "."));
+  const head = el("div", "head");
+  head.appendChild(el("div", "t", s.title));
+  head.appendChild(el("span", "lbl " + (safe ? "safe" : "warn"), safe ? "Safe now" : "May notify them"));
+  sum.appendChild(head);
+  sum.appendChild(el("span", "chev", "▾"));
+  d.appendChild(sum);
+  const body = el("div", "body");
+  s.steps.forEach(x => body.appendChild(el("div", "d", x)));
+  body.appendChild(el("div", "d risk", "⚠ " + s.risk_note));
+  let src = s.source;
+  try { src = [...new Set(s.source.match(/https?:\/\/[^\s;]+/g) || [s.source])].map(u => new URL(u).hostname).join(", "); } catch (e) {}
+  body.appendChild(el("div", "src", "Source: " + src +
     (s.verified_on === "UNVERIFIED" ? " · not yet verified" : " · checked " + s.verified_on)));
+  d.appendChild(body);
   return d;
 }
 
@@ -234,17 +474,23 @@ function renderPlan(plan) {
   if (!plan) { box.appendChild(el("div", "empty", "No plan yet.")); return; }
   if (plan.unexplained_notice) box.appendChild(el("div", "notice", plan.unexplained_notice));
   (plan.notices || []).forEach(n => box.appendChild(el("div", "notice", n)));
+  const a = plan.actionable.length, w = plan.discuss_first.length;
+  const sum = el("div", "plan-sum");
+  sum.appendChild(el("span", "pill safe", a + " safe now"));
+  if (w) sum.appendChild(el("span", "pill warn", w + " talk to an advocate first"));
+  box.appendChild(sum);
   let n = 1;
-  plan.actionable.forEach(s => box.appendChild(stepEl(s, n++)));
-  if (plan.discuss_first.length) {
+  plan.actionable.forEach((s, i) => box.appendChild(stepEl(s, n++, i === 0)));
+  if (w) {
     box.appendChild(el("div", "subhead", "Talk to an advocate before doing these"));
-    plan.discuss_first.forEach(s => box.appendChild(stepEl(s, n++)));
+    plan.discuss_first.forEach(s => box.appendChild(stepEl(s, n++, false)));
   }
   const sim = plan.simulation;
   if (sim && sim.still_exposed.length) {
-    box.appendChild(el("div", "d", "Still possibly exposed after the steps above: " +
+    box.appendChild(el("div", "d", "Still possibly exposed after the safe steps: " +
       sim.still_exposed.join(", ").replaceAll("_", " ")));
   }
+  box.appendChild(el("div", "d", "Tap a step to see how to do it, the risk, and the source."));
 }
 
 async function api(path, body) {
