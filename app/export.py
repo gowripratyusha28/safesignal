@@ -85,6 +85,13 @@ def build_summary(session: dict, today: date | None = None) -> str:
     L += ["", "SUPPORT RESOURCES"]
     L += [f"- {r['name']}: {r['contact']}" for r in resources] or ["- none for this region"]
 
+    rights = validator.rights_for(session["region"])
+    if rights:
+        L += ["", "RIGHTS BASICS FOR THIS REGION (official information, not legal advice)"]
+        for r in rights:
+            scope = f" [{r['scope']}]" if r.get("scope") else ""
+            L.append(f"- {r['summary']}{scope} (source: {r['source']})")
+
     L += ["", "Evidence levels: reported = survivor's account; plausible = consistent with the "
               "facts; verified = survivor confirmed what a settings screenshot showed. "
               "'Not verified' does not mean it is not happening.",

@@ -72,7 +72,9 @@ def for_tool(session: dict, name: str, inp: dict, out: dict) -> None:
         add(session, name, line)
     elif name == "get_resources":
         n = len(out["resources"])
-        add(session, name, f"{out['region'] or 'no region'} → {n} vetted entries"
+        nr = len(out.get("rights", []))
+        add(session, name, f"{out['region'] or 'no region'} → {n} vetted entries, "
+                           f"{nr} rights facts (official sources)"
                            + ("" if out["found"] else " (nothing vetted; no names given)"))
     elif name == "propose_plan":
         if not out["ok"]:

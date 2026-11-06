@@ -97,6 +97,18 @@ def resources_for(region: str | None) -> dict:
     return {"found": True, "region": reg, "resources": found}
 
 
+def rights_for(region: str | None) -> list[dict]:
+    """Official rights basics: local (e.g. US-NY) first, then national. Never invented."""
+    reg = normalize_region(region)
+    if reg is None:
+        return []
+    country = reg.split("-")[0]
+    items = list(data_store.rights().values())
+    local = [r for r in items if r["region"] == reg and reg != country]
+    national = [r for r in items if r["region"] == country]
+    return local + national
+
+
 def expert_resources(region: str | None) -> list[dict]:
     pool = resources_for(region)["resources"]
     experts = [r for r in pool if EXPERT_HELPS & set(r["helps_with"])]
@@ -298,6 +310,7 @@ def _digits(s: str) -> str:
 def _allowed_contacts() -> tuple[set[str], set[str]]:
     texts = [r["contact"] for r in data_store.resources().values()]
     texts += [s for f in data_store.fixes().values() for s in f["steps"]]
+    texts += [r["summary"] + " " + r["source"] for r in data_store.rights().values()]
     domains = {m.group(1).lower().removeprefix("www.") for t in texts for m in URL_RE.finditer(t)}
     domains |= EXTRA_ALLOWED_DOMAINS
     phones = {_digits(m.group(0)) for t in texts for m in PHONE_RE.finditer(t)}

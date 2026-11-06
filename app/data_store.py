@@ -23,3 +23,9 @@ def fixes() -> dict[str, dict]:
 @lru_cache
 def resources() -> dict[str, dict]:
     return {r["id"]: r for r in _load("resources.json")}
+
+
+@lru_cache
+def rights() -> dict[str, dict]:
+    """Short official facts about the law per region. Information, not legal advice."""
+    return {r["id"]: r for r in _load("rights.json")}

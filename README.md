@@ -33,6 +33,11 @@ Claude can only reference fixes in `app/data/fixes.json` and resources in `app/d
 
 Anything the checks can't explain is flagged with expert resources, never "you're safe".
 
+**Rights (Track 2):** `app/data/rights.json` holds short, plain-language facts about the law per region
+(US, US-NY, UK/England & Wales), each with an official source URL. Shown as "official information,
+not legal advice"; Claude can restate them but cannot cite a law that isn't in the list.
+Research trail: `demo/rights_research.md`.
+
 ## Run it
 ```bash
 python -m venv .venv && .venv/bin/pip install -r requirements.txt
@@ -51,7 +56,7 @@ app/engines.py     simulator + hypothesize (pure functions)
 app/validator.py   plan/finding/reply checks, region lookup
 app/vision.py      one-shot screenshot extraction (structured output); image never stored
 app/export.py      consent-gated caseworker summary (technical findings only)
-app/data/          channels, playbook fixes, resources (human-verified; see demo/verification_checklist.md)
+app/data/          channels, playbook fixes, resources, rights (human-verified; see demo/*.md checklists)
 app/static/        single-page UI (vanilla JS)
 demo/              demo script, verification checklist, prepared screenshots
 ```

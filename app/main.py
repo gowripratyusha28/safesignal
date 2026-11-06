@@ -77,6 +77,7 @@ def _public_state(s: dict) -> dict:
         "pending_confirmation": s["pending_confirmation"],
         "plan": plan,
         "resources": resources,
+        "rights": validator.rights_for(s["region"]),
         "trace": s.get("trace", []),
     }
 

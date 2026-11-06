@@ -147,7 +147,15 @@ def simulate_plan(session: dict, fix_ids: list[str]) -> dict:
 
 def get_resources(session: dict, region: str) -> dict:
     session["region"] = validator.normalize_region(region)
-    return validator.resources_for(region)
+    out = validator.resources_for(region)
+    rights = validator.rights_for(region)
+    out["rights"] = [{k: r[k] for k in ("id", "summary", "source", "scope") if k in r}
+                     for r in rights]
+    out["rights_rule"] = ("Official information, not legal advice. Restate only what is "
+                          "written here, in plain words; never predict outcomes or cite "
+                          "laws not listed. Suggest an advocate or a free legal helpline "
+                          "for what applies to them.")
+    return out
 
 
 def _revalidate_plan(session: dict) -> dict:
@@ -274,8 +282,9 @@ TOOLS = [
      "input_schema": _obj({"fix_ids": {"type": "array", "items": {"type": "string"}}},
                           ["fix_ids"])},
     {"name": "get_resources",
-     "description": "Vetted support resources for a country (and optional US state). "
-                    "Only mention organizations and contacts returned here.",
+     "description": "Vetted support resources for a country (and optional US state), plus "
+                    "short official facts about their legal rights (information, not legal "
+                    "advice). Only mention organizations, contacts and rights returned here.",
      "input_schema": _obj({"region": {"type": "string"}}, ["region"])},
     {"name": "propose_plan",
      "description": "Submit the plan. The validator checks ids, applies safety mode, fixes "

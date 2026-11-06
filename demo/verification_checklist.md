@@ -1,6 +1,7 @@
 # Verification checklist: resources.json and fixes.json
 
 > **Status 2026-11-06:** all suggested changes below have been applied to `app/data/fixes.json` and `app/data/resources.json` (sources now point at the URLs listed here). Every entry is still `verified_on: "UNVERIFIED"`. After checking an entry on the demo device or the organisation's site, tick its box and set `verified_on` to the date. Items marked ❓ still need a decision on the device.
+> Rights basics (`app/data/rights.json`) have their own checklist in `demo/rights_research.md` §3.
 
 Prepared 2026-11-06 as research prep for the final human check on a real iPhone. **No data files were edited.** Every URL below was fetched during this research. Where a page couldn't be fetched, or didn't say something, the entry is marked ❓.
 
