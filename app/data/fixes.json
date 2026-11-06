@@ -4,13 +4,17 @@
     "title": "Record what you found before changing anything",
     "platform": "any",
     "closes": [],
-    "steps": ["Write down device names, people, and dates, or photograph the screen using a safe device."],
+    "steps": [
+      "Write down device names, people, and dates somewhere they can't see (on paper, or on a safe device or account).",
+      "If you can, photograph the screen with a second, safe device instead of taking a screenshot. Some apps notify the other person about screenshots, and screenshots on this phone may sync to iCloud Photos.",
+      "Don't delete threatening messages."
+    ],
     "may_notify_abuser": false,
     "loses_access": false,
     "evidence_loss": false,
-    "risk_note": "Safe. Preserves proof that may support a protective order.",
+    "risk_note": "Safe if your notes and photos are kept where they can't see them. Preserves proof that may support a protective order.",
     "prerequisites": [],
-    "source": "Coalition Against Stalkerware / NNEDV",
+    "source": "NNEDV https://www.techsafety.org/documentationtips ; Apple https://support.apple.com/guide/personal-safety/document-suspicious-or-harmful-activity-ips7d42f0c8f/web",
     "verified_on": "UNVERIFIED"
   },
   {
@@ -18,209 +22,309 @@
     "title": "Use a safe device for sensitive communication",
     "platform": "any",
     "closes": [],
-    "steps": ["Use a device the other person has never had access to (a library computer, a trusted friend's phone, or a new phone) to contact support or research options."],
+    "steps": [
+      "Use a device the other person has never had access to (a library computer, a trusted friend's phone, or a new phone) to contact support or research options."
+    ],
     "may_notify_abuser": false,
     "loses_access": false,
     "evidence_loss": false,
     "risk_note": "Safe. Doesn't change anything they can see.",
     "prerequisites": [],
-    "source": "NNEDV Safety Net",
+    "source": "NNEDV https://www.techsafety.org/resources-survivors/technology-safety-plan",
     "verified_on": "UNVERIFIED"
   },
   {
     "id": "fix_recovery_email",
     "title": "Change your Apple ID recovery email and trusted phone number",
     "platform": "iPhone",
-    "closes": ["recovery_control"],
-    "steps": ["Settings → [your name] → Sign-In & Security → review email addresses and trusted phone numbers; remove any you don't control and add ones only you can access."],
+    "closes": [
+      "recovery_control"
+    ],
+    "steps": [
+      "Settings → [your name] → Sign-In & Security. Tap an email address to change it or choose Remove from Account.",
+      "Trusted phone numbers: Settings → [your name] → Sign-In & Security → Two-Factor Authentication → add your own number, then remove any you don't control. You must keep at least one trusted number.",
+      "From a safe device you can do the same at account.apple.com → Sign-In and Security."
+    ],
     "may_notify_abuser": true,
     "loses_access": false,
     "evidence_loss": false,
     "risk_note": "If they control the old email or number, they may see a notification.",
-    "prerequisites": ["document_evidence"],
-    "source": "Apple Support / Refuge",
+    "prerequisites": [
+      "document_evidence"
+    ],
+    "source": "Apple https://support.apple.com/guide/personal-safety/keep-your-apple-account-secure-ips7d5628cc5/web ; https://support.apple.com/en-us/122621",
     "verified_on": "UNVERIFIED"
   },
   {
     "id": "change_apple_id_password",
     "title": "Change your Apple ID password from a safe device",
     "platform": "iPhone",
-    "closes": ["apple_id_password"],
-    "steps": ["Use a safe device. Settings → [your name] → Sign-In & Security → Change Password."],
+    "closes": [
+      "apple_id_password"
+    ],
+    "steps": [
+      "On your own iPhone: Settings → [your name] → Sign-In & Security → Change Password.",
+      "At the end, choose Remove Other Devices (other devices must sign in again) or Keep All Devices Signed In. You may have to wait one hour if Stolen Device Protection is on.",
+      "From a safe device instead: go to account.apple.com → Sign-In and Security → Password."
+    ],
     "may_notify_abuser": true,
     "loses_access": false,
     "evidence_loss": false,
-    "risk_note": "Other devices may be signed out, which they may notice.",
-    "prerequisites": ["fix_recovery_email"],
-    "source": "Apple Support",
+    "risk_note": "If you choose Remove Other Devices, their devices will be signed out, which they may notice.",
+    "prerequisites": [
+      "fix_recovery_email"
+    ],
+    "source": "Apple https://support.apple.com/en-us/101567 ; https://support.apple.com/guide/personal-safety/keep-your-apple-account-secure-ips7d5628cc5/web",
     "verified_on": "UNVERIFIED"
   },
   {
     "id": "remove_unknown_device",
     "title": "Remove an unknown device from your Apple ID",
     "platform": "iPhone",
-    "closes": ["signed_in_device"],
-    "steps": ["Settings → [your name] → scroll to the device list → tap the device → Remove from Account."],
+    "closes": [
+      "signed_in_device"
+    ],
+    "steps": [
+      "Settings → [your name] → scroll to the device list → tap the device → Remove from Account."
+    ],
     "may_notify_abuser": true,
     "loses_access": false,
     "evidence_loss": true,
     "risk_note": "The device will be signed out, which they may notice. Document it first.",
-    "prerequisites": ["document_evidence", "change_apple_id_password"],
-    "source": "Apple Support",
+    "prerequisites": [
+      "document_evidence",
+      "change_apple_id_password"
+    ],
+    "source": "Apple https://support.apple.com/guide/personal-safety/keep-your-apple-account-secure-ips7d5628cc5/web",
     "verified_on": "UNVERIFIED"
   },
   {
     "id": "stop_find_my_sharing",
     "title": "Stop sharing your location in Find My",
     "platform": "iPhone",
-    "closes": ["find_my_sharing"],
-    "steps": ["Find My → People → select the person → Stop Sharing My Location. Or Settings → Privacy & Security → Safety Check → Manage Sharing & Access."],
+    "closes": [
+      "find_my_sharing"
+    ],
+    "steps": [
+      "Find My → People → select the person → Stop Sharing My Location → Stop Sharing Location (on some versions tap More first).",
+      "Or: Settings → Privacy & Security → Safety Check → Manage Sharing & Access."
+    ],
     "may_notify_abuser": true,
     "loses_access": false,
     "evidence_loss": false,
-    "risk_note": "They will likely notice your location is no longer visible.",
-    "prerequisites": ["document_evidence"],
-    "source": "Apple Support / NNEDV",
+    "risk_note": "They won't get an alert on current iOS, but they may notice your location is gone. On older iOS versions they may get a Messages notice.",
+    "prerequisites": [
+      "document_evidence"
+    ],
+    "source": "Apple https://support.apple.com/guide/personal-safety/find-my-and-location-sharing-ips05ede4573/web ; https://support.apple.com/en-us/105104",
     "verified_on": "UNVERIFIED"
   },
   {
     "id": "disable_sms_forwarding",
     "title": "Turn off Text Message Forwarding to other devices",
     "platform": "iPhone",
-    "closes": ["sms_forwarding"],
-    "steps": ["Settings → Messages → Text Message Forwarding (on newer iOS: Settings → Apps → Messages) → turn off any device you don't recognise."],
+    "closes": [
+      "sms_forwarding"
+    ],
+    "steps": [
+      "Settings → Apps → Messages → Text Message Forwarding → turn off any device you don't recognise. (Older iOS: Settings → Messages.)"
+    ],
     "may_notify_abuser": true,
     "loses_access": false,
     "evidence_loss": true,
     "risk_note": "Texts will stop appearing on the other device, which they may notice. Document the device list first.",
-    "prerequisites": ["document_evidence"],
-    "source": "Apple Support",
+    "prerequisites": [
+      "document_evidence"
+    ],
+    "source": "Apple https://support.apple.com/guide/personal-safety/review-forwarding-settings-ips07e9f4def/web",
     "verified_on": "UNVERIFIED"
   },
   {
     "id": "leave_family_sharing",
     "title": "Leave the Apple Family Sharing group",
     "platform": "iPhone",
-    "closes": ["family_sharing"],
-    "steps": ["Settings → [your name] → Family → [your name] → Stop Using Family Sharing."],
+    "closes": [
+      "family_sharing"
+    ],
+    "steps": [
+      "Settings → Family (below your name) → [your name] → Stop Using Family Sharing. (iOS 17 or earlier: Settings → [your name] → Family Sharing → [your name] → Stop Using Family Sharing.)",
+      "Less visible option: Settings → Family → Location Sharing, to stop sharing only your location."
+    ],
     "may_notify_abuser": true,
     "loses_access": true,
     "evidence_loss": false,
     "risk_note": "The organizer is likely to notice. You may lose access to shared purchases and subscriptions.",
-    "prerequisites": ["document_evidence"],
-    "source": "Apple Support",
+    "prerequisites": [
+      "document_evidence"
+    ],
+    "source": "Apple https://support.apple.com/guide/personal-safety/manage-family-sharing-ips75b3b794f/web",
     "verified_on": "UNVERIFIED"
   },
   {
     "id": "change_passcode",
     "title": "Change your phone passcode",
     "platform": "any",
-    "closes": ["knows_passcode"],
-    "steps": ["iPhone: Settings → Face ID & Passcode → Change Passcode. Android: Settings → Security → Screen lock."],
+    "closes": [
+      "knows_passcode"
+    ],
+    "steps": [
+      "iPhone: Settings → Face ID & Passcode (or Touch ID & Passcode) → Change Passcode, then tap Expire Previous Passcode so the old one can't be used to reset it.",
+      "Android: Settings → Security → Screen lock (may vary by manufacturer)."
+    ],
     "may_notify_abuser": true,
     "loses_access": false,
     "evidence_loss": false,
-    "risk_note": "If they try to unlock your phone, they will notice the passcode no longer works.",
-    "prerequisites": ["document_evidence"],
-    "source": "Apple Support / Google Support",
+    "risk_note": "If they try to unlock your phone, they will notice the passcode no longer works. Without Expire Previous Passcode, the old passcode can reset the new one for 72 hours.",
+    "prerequisites": [
+      "document_evidence"
+    ],
+    "source": "Apple https://support.apple.com/guide/personal-safety/set-a-unique-device-passcode-or-password-ipsd0a253dd5/web ; Google https://support.google.com/android/answer/9079129",
     "verified_on": "UNVERIFIED"
   },
   {
     "id": "review_locator_apps",
     "title": "Review which apps can always see your location",
     "platform": "iPhone",
-    "closes": ["locator_app"],
-    "steps": ["Settings → Privacy & Security → Location Services → look for apps set to 'Always' (for example family-locator apps) → set to 'Never' or delete the app."],
+    "closes": [
+      "locator_app"
+    ],
+    "steps": [
+      "Settings → Privacy & Security → Location Services → look for apps set to 'Always' (for example family-locator apps) → set to 'Never' or delete the app."
+    ],
     "may_notify_abuser": true,
     "loses_access": false,
     "evidence_loss": true,
-    "risk_note": "Family-locator apps often tell the other members when location stops updating.",
-    "prerequisites": ["document_evidence"],
-    "source": "Apple Support / NNEDV",
+    "risk_note": "Family-locator apps may show other members that your location stopped updating. Deleting the app also removes what it recorded.",
+    "prerequisites": [
+      "document_evidence"
+    ],
+    "source": "Apple https://support.apple.com/en-us/102647 ; https://support.apple.com/guide/personal-safety/manage-location-services-settings-ips9bf20ad2f/web",
     "verified_on": "UNVERIFIED"
   },
   {
     "id": "remove_mdm_profile",
     "title": "Review and remove an unknown device management profile",
     "platform": "iPhone",
-    "closes": ["mdm_profile"],
-    "steps": ["Settings → General → VPN & Device Management → tap the profile → Remove Management (or Remove Profile)."],
+    "closes": [
+      "mdm_profile"
+    ],
+    "steps": [
+      "Settings → General → VPN & Device Management → select the profile → Delete Profile → follow the prompts → restart. If nothing is listed, no profiles are installed."
+    ],
     "may_notify_abuser": true,
     "loses_access": false,
     "evidence_loss": true,
     "risk_note": "Whoever manages the profile may be notified. If it could be a legitimate work or school profile, talk to an advocate or IT first.",
-    "prerequisites": ["document_evidence"],
-    "source": "Apple Support",
+    "prerequisites": [
+      "document_evidence"
+    ],
+    "source": "Apple https://support.apple.com/guide/personal-safety/review-and-delete-configuration-profiles-ips327569a75/web",
     "verified_on": "UNVERIFIED"
   },
   {
     "id": "google_fix_recovery",
     "title": "Change your Google recovery email and phone",
     "platform": "Google",
-    "closes": ["recovery_control"],
-    "steps": ["myaccount.google.com → Security → Recovery email / Recovery phone → replace any you don't control."],
+    "closes": [
+      "recovery_control"
+    ],
+    "steps": [
+      "myaccount.google.com → Security & sign-in → under 'How you sign in to Google' → Recovery phone / Recovery email → Edit or Delete."
+    ],
     "may_notify_abuser": true,
     "loses_access": false,
     "evidence_loss": false,
-    "risk_note": "The old recovery email or number may receive a notification.",
-    "prerequisites": ["document_evidence"],
-    "source": "Google Support",
+    "risk_note": "The old recovery email or number may get a notification, and Google may keep sending codes to it for 7 days.",
+    "prerequisites": [
+      "document_evidence"
+    ],
+    "source": "Google https://support.google.com/accounts/answer/183723",
     "verified_on": "UNVERIFIED"
   },
   {
     "id": "google_remove_device",
     "title": "Sign out an unknown device from your Google account",
     "platform": "Google",
-    "closes": ["google_signed_in"],
-    "steps": ["myaccount.google.com → Security → Your devices → Manage all devices → select the device → Sign out."],
+    "closes": [
+      "google_signed_in"
+    ],
+    "steps": [
+      "myaccount.google.com → Security & sign-in → Your devices → Manage all devices → select the device → Sign out. If several sessions show the same device name, sign out of all of them."
+    ],
     "may_notify_abuser": true,
     "loses_access": false,
     "evidence_loss": true,
     "risk_note": "The device will be signed out, which they may notice. Document it first.",
-    "prerequisites": ["document_evidence", "google_fix_recovery"],
-    "source": "Google Support",
+    "prerequisites": [
+      "document_evidence",
+      "google_fix_recovery"
+    ],
+    "source": "Google https://support.google.com/accounts/answer/3067630",
     "verified_on": "UNVERIFIED"
   },
   {
     "id": "google_stop_location_share",
     "title": "Stop sharing your location in Google Maps",
     "platform": "Google",
-    "closes": ["google_location_share"],
-    "steps": ["Google Maps → your profile picture → Location sharing → select the person → Stop."],
+    "closes": [
+      "google_location_share"
+    ],
+    "steps": [
+      "On the web: myaccount.google.com → People & sharing → Location Sharing → Manage Location Sharing → select the person → Stop.",
+      "On Android: Settings → Location → Location services → Google Location Sharing → Stop next to the person."
+    ],
     "may_notify_abuser": true,
     "loses_access": false,
     "evidence_loss": false,
     "risk_note": "They will likely notice your location is no longer visible.",
-    "prerequisites": ["document_evidence"],
-    "source": "Google Support",
+    "prerequisites": [
+      "document_evidence"
+    ],
+    "source": "Google https://support.google.com/maps/answer/7326816",
     "verified_on": "UNVERIFIED"
   },
   {
     "id": "whatsapp_unlink_devices",
     "title": "Log out WhatsApp linked devices you don't recognise",
     "platform": "any",
-    "closes": ["whatsapp_linked"],
-    "steps": ["WhatsApp → Settings → Linked Devices → tap the device → Log Out."],
+    "closes": [
+      "whatsapp_linked"
+    ],
+    "steps": [
+      "WhatsApp → Settings (or your profile picture) → Linked devices → tap the device → Log out → Log out (confirm)."
+    ],
     "may_notify_abuser": true,
     "loses_access": false,
     "evidence_loss": true,
     "risk_note": "Chats will stop appearing on the other computer, which they may notice. Document it first.",
-    "prerequisites": ["document_evidence"],
-    "source": "WhatsApp Help Center",
+    "prerequisites": [
+      "document_evidence"
+    ],
+    "source": "WhatsApp https://faq.whatsapp.com/834124628020911 ; https://faq.whatsapp.com/378279804439436",
     "verified_on": "UNVERIFIED"
   },
   {
     "id": "carrier_own_account",
     "title": "Get your phone line onto an account you control",
     "platform": "any",
-    "closes": ["carrier_account"],
-    "steps": ["Contact your carrier from a safe device. In the US, the Safe Connections Act lets survivors ask to separate their line from a shared plan; an advocate can help with the request."],
+    "closes": [
+      "carrier_account"
+    ],
+    "steps": [
+      "From a safe device, contact your carrier and ask for a line separation under the Safe Connections Act. You don't need to be the account holder.",
+      "You can ask to move your line (and lines of people in your care) off the plan, or to move their line off.",
+      "The carrier will ask which phone numbers are involved and the names on the account (this app never needs them), plus one document: a signed affidavit from a medical or mental-health provider, social worker, victim services provider or court employee, or a police report, protective order or other official record.",
+      "Carriers must process the request within 2 business days and lock the account against changes meanwhile. Ask which date they will notify the account holder. An advocate can help with the affidavit."
+    ],
     "may_notify_abuser": true,
     "loses_access": false,
     "evidence_loss": false,
-    "risk_note": "The account holder may notice the line has moved. Plan this with an advocate.",
-    "prerequisites": ["document_evidence", "use_safe_device"],
-    "source": "FCC Safe Connections Act guidance — verify details",
+    "risk_note": "The account holder will be notified on a date the carrier tells you in advance. Plan this with an advocate.",
+    "prerequisites": [
+      "document_evidence",
+      "use_safe_device"
+    ],
+    "source": "FCC Safe Connections Act order (draft FCC-CIRC2311-02, check final FCC 23-96) https://docs.fcc.gov/public/attachments/DOC-397987A1.pdf",
     "verified_on": "UNVERIFIED"
   }
 ]
