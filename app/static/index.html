@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>SafeSignal</title>
+<style>
+  :root { --bg:#f7f6f3; --card:#fff; --ink:#222; --muted:#666; --accent:#3b5bdb;
+          --safe:#2b8a3e; --warn:#c92a2a; --line:#e3e1dc; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.5 system-ui, -apple-system, sans-serif; background:var(--bg); color:var(--ink); }
+  header { display:flex; align-items:center; justify-content:space-between; padding:10px 18px;
+           background:var(--card); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5; }
+  header h1 { font-size:18px; margin:0; }
+  #exit { background:var(--warn); color:#fff; border:0; border-radius:6px; padding:8px 16px;
+          font-weight:600; cursor:pointer; }
+  main { display:grid; grid-template-columns: 1fr 360px; gap:16px; padding:16px; height:calc(100vh - 56px); }
+  @media (max-width: 860px) { main { grid-template-columns:1fr; height:auto; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; }
+  #chat { display:flex; flex-direction:column; min-height:400px; }
+  #log { flex:1; overflow-y:auto; padding:16px; }
+  .msg { max-width:80%; padding:10px 14px; border-radius:12px; margin:6px 0; white-space:pre-wrap; }
+  .user { background:var(--accent); color:#fff; margin-left:auto; border-bottom-right-radius:3px; }
+  .bot  { background:#f0efeb; border-bottom-left-radius:3px; }
+  .sys  { color:var(--muted); font-size:13px; text-align:center; max-width:100%; }
+  form#send { display:flex; gap:8px; padding:12px; border-top:1px solid var(--line); }
+  #text { flex:1; padding:10px; border:1px solid var(--line); border-radius:8px; font:inherit; resize:none; }
+  button.primary { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:0 18px; cursor:pointer; }
+  button:disabled { opacity:.5; cursor:default; }
+  #upload { display:none; padding:12px; border-top:1px dashed var(--line); background:#fbfaf7; }
+  #upload p { margin:0 0 8px; font-size:13px; color:var(--muted); }
+  aside { overflow-y:auto; padding:14px; }
+  aside h2 { font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:16px 0 6px; }
+  aside h2:first-child { margin-top:0; }
+  .badge { display:inline-block; padding:3px 10px; border-radius:999px; font-size:13px; font-weight:600; background:#eee; }
+  .badge.covert { background:#fff4e6; color:#d9480f; }
+  .badge.lockdown { background:#e6fcf5; color:#087f5b; }
+  .chip { font-size:11px; padding:1px 8px; border-radius:999px; margin-left:6px; font-weight:600; }
+  .chip.reported { background:#f1f3f5; color:#495057; }
+  .chip.plausible { background:#fff3bf; color:#8f6b00; }
+  .chip.verified { background:#d3f9d8; color:var(--safe); }
+  ul.list { list-style:none; padding:0; margin:0; }
+  ul.list li { padding:6px 0; border-bottom:1px solid var(--line); font-size:14px; }
+  .empty { color:var(--muted); font-size:13px; font-style:italic; }
+</style>
+</head>
+<body>
+<header>
+  <h1>SafeSignal</h1>
+  <button id="exit" title="Leave immediately (Esc twice)">Quick Exit</button>
+</header>
+<main>
+  <section id="chat" class="card">
+    <div id="log"></div>
+    <div id="upload">
+      <p id="upload-hint">Screenshots saved on a phone that may be compromised can sync to someone else through shared iCloud Photos. If you can, photograph the screen with a safe device.</p>
+      <input type="file" id="file" accept="image/png,image/jpeg,image/webp,image/gif">
+      <button class="primary" id="send-file" style="padding:6px 14px">Send screenshot</button>
+    </div>
+    <form id="send">
+      <textarea id="text" rows="2" placeholder="Type here… (nothing is saved)"></textarea>
+      <button class="primary" id="send-btn" type="submit">Send</button>
+    </form>
+  </section>
+  <aside class="card">
+    <h2>Safety mode</h2>
+    <div id="mode"><span class="badge">Not set yet</span></div>
+    <h2>Findings</h2>
+    <ul class="list" id="findings"><li class="empty">Nothing recorded yet.</li></ul>
+    <h2>What may be exposed</h2>
+    <ul class="list" id="exposed"><li class="empty">—</li></ul>
+    <h2>Plan</h2>
+    <ul class="list" id="plan"><li class="empty">No plan yet.</li></ul>
+    <h2>Support</h2>
+    <ul class="list" id="resources"><li class="empty">—</li></ul>
+  </aside>
+</main>
+<script>
+// No localStorage, no cookies, no analytics. Session id lives only in this variable.
+let SID = null;
+const $ = (id) => document.getElementById(id);
+
+function add(text, cls) {
+  const d = document.createElement("div");
+  d.className = "msg " + cls;
+  d.textContent = text;          // never innerHTML for model output
+  $("log").appendChild(d);
+  $("log").scrollTop = $("log").scrollHeight;
+  return d;
+}
+
+function li(text, extra) {
+  const el = document.createElement("li");
+  el.textContent = text;
+  if (extra) el.appendChild(extra);
+  return el;
+}
+
+function fill(listId, items, emptyText) {
+  const ul = $(listId);
+  ul.replaceChildren(...(items.length ? items : [li(emptyText)]));
+  if (!items.length) ul.firstChild.className = "empty";
+}
+
+function render(state) {
+  if (!state) return;
+  const mode = state.safety_mode;
+  $("mode").innerHTML = "";
+  const b = document.createElement("span");
+  b.className = "badge " + (mode || "");
+  b.textContent = mode === "covert" ? "Covert — careful steps only"
+                : mode === "lockdown" ? "Lockdown — full plan" : "Not set yet";
+  $("mode").appendChild(b);
+
+  fill("findings", (state.findings || []).map(f => {
+    const c = document.createElement("span");
+    c.className = "chip " + f.evidence_level;
+    c.textContent = f.evidence_level;
+    return li(f.label || f.channel_id, c);
+  }), "Nothing recorded yet.");
+
+  fill("exposed", (state.exposed || []).map(x => li(x)), "—");
+
+  const plan = state.plan;
+  const steps = plan ? [...(plan.actionable || []).map(s => li("✅ Safe now: " + s.title)),
+                        ...(plan.discuss_first || []).map(s => li("⚠️ May notify them — talk to an advocate first: " + s.title))] : [];
+  fill("plan", steps, "No plan yet.");
+
+  fill("resources", (state.resources || []).map(r => li(r.name + " — " + r.contact)), "—");
+
+  $("upload").style.display = state.pending_screenshot ? "block" : "none";
+}
+
+async function api(path, body) {
+  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" },
+                                 body: JSON.stringify(body), cache: "no-store" });
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.statusText);
+  return r.json();
+}
+
+async function start() {
+  const r = await api("/api/session", {});
+  SID = r.session_id;
+  render(r.state);
+  add("Nothing you type here is saved. If you need to leave quickly, press Quick Exit (or Esc twice). "
+      + "If you're in immediate danger, call your local emergency number.", "sys");
+  await send("Hi, I'd like some help.", true);
+}
+
+function busy(on) { $("send-btn").disabled = on; $("send-file").disabled = on; }
+
+async function send(text, hidden) {
+  if (!hidden) add(text, "user");
+  const thinking = add("…", "bot");
+  busy(true);
+  try {
+    const r = await api("/api/message", { session_id: SID, text });
+    thinking.textContent = r.reply;
+    render(r.state);
+  } catch (e) {
+    thinking.textContent = "Something went wrong: " + e.message;
+  } finally { busy(false); }
+}
+
+$("send").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const t = $("text").value.trim();
+  if (!t || !SID) return;
+  $("text").value = "";
+  send(t);
+});
+$("text").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("send").requestSubmit(); }
+});
+
+$("send-file").addEventListener("click", async () => {
+  const f = $("file").files[0];
+  if (!f) return;
+  add("📷 Screenshot sent", "user");
+  const thinking = add("Reading the screenshot…", "bot");
+  busy(true);
+  const fd = new FormData();
+  fd.append("session_id", SID); fd.append("file", f);
+  try {
+    const r = await fetch("/api/screenshot", { method: "POST", body: fd });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.detail || r.statusText);
+    thinking.textContent = j.reply;
+    render(j.state);
+  } catch (e) { thinking.textContent = "Couldn't read that: " + e.message; }
+  finally { busy(false); $("file").value = ""; }
+});
+
+// Quick exit: wipe server session, clear the page, replace history entry.
+function quickExit() {
+  if (SID) navigator.sendBeacon("/api/exit", new Blob([JSON.stringify({ session_id: SID })], { type: "application/json" }));
+  SID = null;
+  document.body.innerHTML = "";
+  location.replace("https://weather.com");
+}
+$("exit").addEventListener("click", quickExit);
+let lastEsc = 0;
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  const now = Date.now();
+  if (now - lastEsc < 600) quickExit();
+  lastEsc = now;
+});
+
+start();
+</script>
+</body>
+</html>
