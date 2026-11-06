@@ -38,26 +38,38 @@ def observables() -> list[str]:
 
 # ---------------------------------------------------------------- simulator
 
-def _effective(active: set[str]) -> set[str]:
+PLATFORMS = ("apple", "google", "whatsapp")
+
+
+def channel_in_scope(channel_id: str, platforms: set[str] | None) -> bool:
+    """platforms=None means 'not known yet' → every channel is in scope."""
+    if platforms is None:
+        return True
+    plat = data_store.channels()[channel_id].get("platform", "any")
+    return plat == "any" or plat in platforms
+
+
+def _effective(active: set[str], platforms: set[str] | None = None) -> set[str]:
     eff = set(active)
     if "recovery_control" in eff:
-        eff.update(RECOVERY_REOPENS)
+        eff.update(c for c in RECOVERY_REOPENS if channel_in_scope(c, platforms))
     return eff
 
 
-def exposed(active_channels: set[str]) -> set[str]:
+def exposed(active_channels: set[str], platforms: set[str] | None = None) -> set[str]:
     """Union of everything revealed by active channels.
     If recovery_control is active, account reset re-enables apple_id_password
     and google access even after a password change."""
     chans = data_store.channels()
     out: set[str] = set()
-    for cid in _effective(active_channels):
+    for cid in _effective(active_channels, platforms):
         if cid in chans:
             out.update(chans[cid]["reveals"])
     return out
 
 
-def simulate_plan(active_channels: set[str], fix_ids: list[str]) -> dict:
+def simulate_plan(active_channels: set[str], fix_ids: list[str],
+                  platforms: set[str] | None = None) -> dict:
     """Apply fixes in order and report what's left and what's wrong.
 
     Returns {"remaining_channels", "still_exposed", "order_problems", "unknown_fixes"}.
@@ -94,7 +106,7 @@ def simulate_plan(active_channels: set[str], fix_ids: list[str]) -> dict:
     problems = list(dict.fromkeys(problems))
     return {
         "remaining_channels": sorted(remaining),
-        "still_exposed": sorted(exposed(remaining)),
+        "still_exposed": sorted(exposed(remaining, platforms)),
         "order_problems": problems,
         "unknown_fixes": unknown,
     }
@@ -153,7 +165,8 @@ def _best_check(candidates: list[dict]) -> dict | None:
     }
 
 
-def hypothesize(observed: set[str], ruled_out: set[str] | frozenset[str] = frozenset()) -> dict:
+def hypothesize(observed: set[str], ruled_out: set[str] | frozenset[str] = frozenset(),
+                platforms: set[str] | None = None) -> dict:
     """Input: what they seem to know, e.g. {"location", "messages"}.
 
     Returns {
@@ -166,7 +179,8 @@ def hypothesize(observed: set[str], ruled_out: set[str] | frozenset[str] = froze
     imply the survivor is safe.
     """
     observed = set(observed)
-    chans = [c for cid, c in sorted(data_store.channels().items()) if cid not in ruled_out]
+    chans = [c for cid, c in sorted(data_store.channels().items())
+             if cid not in ruled_out and channel_in_scope(cid, platforms)]
 
     explainable: set[str] = set()
     useful: list[dict] = []

@@ -187,7 +187,8 @@ def validate_plan(fix_ids: list[str], safety_mode: str | None,
                   active_channels: set[str] | None = None,
                   resource_ids: list[str] | None = None,
                   region: str | None = None,
-                  last_hypothesis: dict | None = None) -> dict:
+                  last_hypothesis: dict | None = None,
+                  platforms: set[str] | None = None) -> dict:
     """Rules 1–4 and 7. Returns {"ok": False, "rejected": [...]} if any ID is unknown
     (Claude must retry with real IDs); otherwise the display-ready plan."""
     fixes = data_store.fixes()
@@ -249,7 +250,7 @@ def validate_plan(fix_ids: list[str], safety_mode: str | None,
     if active_channels is not None:
         # Simulate only what the survivor would actually do now.
         simulation = engines.simulate_plan(set(active_channels),
-                                           [f["id"] for f in actionable])
+                                           [f["id"] for f in actionable], platforms)
 
     return {
         "ok": True,

@@ -43,6 +43,16 @@
   ul.list { list-style:none; padding:0; margin:0; }
   ul.list li { padding:6px 0; border-bottom:1px solid var(--line); font-size:14px; }
   .empty { color:var(--muted); font-size:13px; font-style:italic; }
+  .step { padding:8px 0; border-bottom:1px solid var(--line); font-size:14px; }
+  .step .t { font-weight:600; }
+  .step .lbl { font-size:11px; font-weight:700; padding:1px 8px; border-radius:999px; margin-right:6px; }
+  .lbl.safe { background:#d3f9d8; color:var(--safe); }
+  .lbl.warn { background:#ffe3e3; color:var(--warn); }
+  .step .d { color:var(--muted); font-size:13px; margin-top:3px; }
+  .step .src { color:var(--muted); font-size:11px; margin-top:3px; }
+  .subhead { font-size:12px; font-weight:700; color:var(--warn); margin:10px 0 2px; }
+  .notice { background:#fff9db; border:1px solid #ffe066; border-radius:8px; padding:8px 10px;
+            font-size:13px; margin:6px 0; }
 </style>
 </head>
 <body>
@@ -70,8 +80,9 @@
     <ul class="list" id="findings"><li class="empty">Nothing recorded yet.</li></ul>
     <h2>What may be exposed</h2>
     <ul class="list" id="exposed"><li class="empty">—</li></ul>
+    <div id="unexplained"></div>
     <h2>Plan</h2>
-    <ul class="list" id="plan"><li class="empty">No plan yet.</li></ul>
+    <div id="plan"><div class="empty">No plan yet.</div></div>
     <h2>Support</h2>
     <ul class="list" id="resources"><li class="empty">—</li></ul>
   </aside>
@@ -120,16 +131,64 @@ function render(state) {
     return li(f.label || f.channel_id, c);
   }), "Nothing recorded yet.");
 
-  fill("exposed", (state.exposed || []).map(x => li(x)), "—");
+  fill("exposed", (state.exposed || []).map(x => li(x.replaceAll("_", " "))), "—");
 
-  const plan = state.plan;
-  const steps = plan ? [...(plan.actionable || []).map(s => li("✅ Safe now: " + s.title)),
-                        ...(plan.discuss_first || []).map(s => li("⚠️ May notify them — talk to an advocate first: " + s.title))] : [];
-  fill("plan", steps, "No plan yet.");
+  renderUnexplained(state);
+  renderPlan(state.plan);
 
   fill("resources", (state.resources || []).map(r => li(r.name + " — " + r.contact)), "—");
 
   $("upload").style.display = state.pending_screenshot ? "block" : "none";
+}
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+function renderUnexplained(state) {
+  const box = $("unexplained");
+  box.replaceChildren();
+  if (state.unexplained && state.unexplained.length && !(state.plan && state.plan.unexplained_notice)) {
+    box.appendChild(el("div", "notice",
+      "Not yet explained by what we've checked: " + state.unexplained.join(", ").replaceAll("_", " ") +
+      ". This doesn't mean you're imagining it — an expert can help look further."));
+  }
+}
+
+function stepEl(s, n) {
+  const d = el("div", "step");
+  const top = el("div");
+  const safe = !s.may_notify_abuser;
+  top.appendChild(el("span", "lbl " + (safe ? "safe" : "warn"), s.label));
+  d.appendChild(top);
+  d.appendChild(el("div", "t", n + ". " + s.title));
+  s.steps.forEach(x => d.appendChild(el("div", "d", x)));
+  d.appendChild(el("div", "d", "⚠ " + s.risk_note));
+  d.appendChild(el("div", "src", "Source: " + s.source +
+    (s.verified_on === "UNVERIFIED" ? " · not yet verified" : " · checked " + s.verified_on)));
+  return d;
+}
+
+function renderPlan(plan) {
+  const box = $("plan");
+  box.replaceChildren();
+  if (!plan) { box.appendChild(el("div", "empty", "No plan yet.")); return; }
+  if (plan.unexplained_notice) box.appendChild(el("div", "notice", plan.unexplained_notice));
+  (plan.notices || []).forEach(n => box.appendChild(el("div", "notice", n)));
+  let n = 1;
+  plan.actionable.forEach(s => box.appendChild(stepEl(s, n++)));
+  if (plan.discuss_first.length) {
+    box.appendChild(el("div", "subhead", "Talk to an advocate before doing these"));
+    plan.discuss_first.forEach(s => box.appendChild(stepEl(s, n++)));
+  }
+  const sim = plan.simulation;
+  if (sim && sim.still_exposed.length) {
+    box.appendChild(el("div", "d", "Still possibly exposed after the steps above: " +
+      sim.still_exposed.join(", ").replaceAll("_", " ")));
+  }
 }
 
 async function api(path, body) {
@@ -144,6 +203,7 @@ async function start() {
   SID = r.session_id;
   render(r.state);
   add("Nothing you type here is saved. If you need to leave quickly, press Quick Exit (or Esc twice). "
+      + "For extra privacy, use a private/incognito window on a device the other person can't access. "
       + "If you're in immediate danger, call your local emergency number.", "sys");
   await send("Hi, I'd like some help.", true);
 }

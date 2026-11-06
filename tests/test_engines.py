@@ -156,3 +156,35 @@ def test_observables_vocabulary():
     vocab = engines.observables()
     assert "location" in vocab and "messages" in vocab
     assert engines.PHYSICAL_ACCESS not in vocab
+
+
+# ------------------------------------------------------------ platform scope
+
+def test_iphone_only_recovery_does_not_claim_google_exposure():
+    out = engines.exposed({"recovery_control"}, platforms={"apple"})
+    assert "messages" in out and "email" not in out
+
+
+def test_unknown_platforms_keeps_everything_in_scope():
+    assert "email" in engines.exposed({"recovery_control"}, platforms=None)
+
+
+def test_iphone_only_hypothesis_excludes_google_channels():
+    r = engines.hypothesize({"location", "messages"}, platforms={"apple"})
+    ids = {cid for c in r["candidates"] for cid in c["channels"]}
+    assert not ids & {"google_location_share", "google_signed_in", "whatsapp_linked"}
+    assert "find_my_sharing" in ids and "locator_app" in ids  # 'any' platform kept
+
+
+def test_out_of_scope_only_explanation_becomes_unexplained():
+    # passcode access could still explain it (reads the phone directly)
+    r = engines.hypothesize({"whatsapp_messages"}, platforms={"apple"})
+    assert [c["channels"] for c in r["candidates"]] == [["knows_passcode"]]
+    r = engines.hypothesize({"whatsapp_messages"}, ruled_out={"knows_passcode"},
+                            platforms={"apple"})
+    assert r["unexplained"] == ["whatsapp_messages"]
+
+
+def test_simulate_respects_platforms():
+    r = engines.simulate_plan({"recovery_control"}, [], platforms={"apple"})
+    assert "email" not in r["still_exposed"]

@@ -1,15 +1,15 @@
 [
-  {"id": "apple_id_password",    "label": "Knows your Apple ID password",            "reveals": ["location", "messages", "photos", "backups", "notes"], "how_to_verify": "interview"},
-  {"id": "find_my_sharing",      "label": "Location shared via Find My",              "reveals": ["location"],                              "how_to_verify": "screenshot:safety_check_people"},
-  {"id": "family_sharing",       "label": "In your Apple Family Sharing group",       "reveals": ["location", "purchases"],                 "how_to_verify": "screenshot:family"},
-  {"id": "signed_in_device",     "label": "Another device signed into your Apple ID", "reveals": ["messages", "photos", "notes", "backups"], "how_to_verify": "screenshot:apple_id_devices"},
-  {"id": "sms_forwarding",       "label": "Texts forwarded to another device",        "reveals": ["sms"],                                   "how_to_verify": "screenshot:text_forwarding"},
-  {"id": "recovery_control",     "label": "Controls your recovery email or phone",    "reveals": ["account_reset"],                         "how_to_verify": "screenshot:sign_in_security"},
-  {"id": "google_signed_in",     "label": "Unknown device on your Google account",    "reveals": ["email", "location_history", "photos"],   "how_to_verify": "screenshot:google_devices"},
-  {"id": "google_location_share","label": "Location shared in Google Maps",           "reveals": ["location"],                              "how_to_verify": "screenshot:google_maps_sharing"},
-  {"id": "whatsapp_linked",      "label": "WhatsApp linked device",                   "reveals": ["whatsapp_messages"],                     "how_to_verify": "screenshot:whatsapp_linked"},
-  {"id": "carrier_account",      "label": "Owns your phone plan account",             "reveals": ["call_logs", "sms_logs"],                 "how_to_verify": "interview"},
-  {"id": "knows_passcode",       "label": "Knows your phone passcode",                "reveals": ["everything_with_physical_access"],       "how_to_verify": "interview"},
-  {"id": "locator_app",          "label": "Family-locator app with location access",  "reveals": ["location"],                              "how_to_verify": "screenshot:location_services_apps"},
-  {"id": "mdm_profile",          "label": "Device management profile installed",      "reveals": ["device_activity", "settings_control"],   "how_to_verify": "screenshot:vpn_device_management"}
+  {"id": "apple_id_password", "label": "Knows your Apple ID password", "platform": "apple", "reveals": ["location", "messages", "photos", "backups", "notes"], "how_to_verify": "interview"},
+  {"id": "find_my_sharing", "label": "Location shared via Find My", "platform": "apple", "reveals": ["location"], "how_to_verify": "screenshot:safety_check_people"},
+  {"id": "family_sharing", "label": "In your Apple Family Sharing group", "platform": "apple", "reveals": ["location", "purchases"], "how_to_verify": "screenshot:family"},
+  {"id": "signed_in_device", "label": "Another device signed into your Apple ID", "platform": "apple", "reveals": ["messages", "photos", "notes", "backups"], "how_to_verify": "screenshot:apple_id_devices"},
+  {"id": "sms_forwarding", "label": "Texts forwarded to another device", "platform": "apple", "reveals": ["sms"], "how_to_verify": "screenshot:text_forwarding"},
+  {"id": "recovery_control", "label": "Controls your recovery email or phone", "platform": "any", "reveals": ["account_reset"], "how_to_verify": "screenshot:sign_in_security"},
+  {"id": "google_signed_in", "label": "Unknown device on your Google account", "platform": "google", "reveals": ["email", "location_history", "photos"], "how_to_verify": "screenshot:google_devices"},
+  {"id": "google_location_share", "label": "Location shared in Google Maps", "platform": "google", "reveals": ["location"], "how_to_verify": "screenshot:google_maps_sharing"},
+  {"id": "whatsapp_linked", "label": "WhatsApp linked device", "platform": "whatsapp", "reveals": ["whatsapp_messages"], "how_to_verify": "screenshot:whatsapp_linked"},
+  {"id": "carrier_account", "label": "Owns your phone plan account", "platform": "any", "reveals": ["call_logs", "sms_logs"], "how_to_verify": "interview"},
+  {"id": "knows_passcode", "label": "Knows your phone passcode", "platform": "any", "reveals": ["everything_with_physical_access"], "how_to_verify": "interview"},
+  {"id": "locator_app", "label": "Family-locator app with location access", "platform": "any", "reveals": ["location"], "how_to_verify": "screenshot:location_services_apps"},
+  {"id": "mdm_profile", "label": "Device management profile installed", "platform": "apple", "reveals": ["device_activity", "settings_control"], "how_to_verify": "screenshot:vpn_device_management"}
 ]

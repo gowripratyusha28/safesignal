@@ -12,7 +12,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile  # noqa: E402
 from fastapi.responses import FileResponse  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
 
-from app import agent  # noqa: E402
+from app import agent, engines, tools, validator  # noqa: E402
 
 app = FastAPI(title="SafeSignal", docs_url=None, redoc_url=None)
 
@@ -26,11 +26,14 @@ def _new_session() -> dict:
     return {
         "messages": [],
         "safety_mode": None,      # "covert" | "lockdown"
+        "platforms": [],          # subset of engines.PLATFORMS; empty = unknown
         "region": None,
-        "observations": [],
-        "findings": {},           # channel_id -> {evidence_level, basis, confirmed}
+        "observations": [],       # [{knowledge, evidence}]
+        "findings": {},           # channel_id -> {evidence_level, basis, screenshot_confirmed, note}
+        "ruled_out": set(),
         "last_hypothesis": None,
         "pending_screenshot": None,
+        "plan_request": None,
         "plan": None,
         "touched": time.time(),
     }
@@ -53,11 +56,21 @@ def _get(sid: str) -> dict:
 
 def _public_state(s: dict) -> dict:
     """What the right-hand panel shows. Never includes conversation text."""
+    findings, _ = validator.validate_findings(list(s["findings"].values()))
+    hyp = s["last_hypothesis"] or {}
+    plan = s["plan"]
+    resources = (plan["resources"] if plan and plan["resources"]
+                 else validator.resources_for(s["region"])["resources"])
     return {
         "safety_mode": s["safety_mode"],
-        "findings": [{"channel_id": k, **v} for k, v in s["findings"].items()],
+        "platforms": s["platforms"],
+        "findings": [{k: f[k] for k in ("channel_id", "label", "evidence_level", "basis")}
+                     for f in findings],
+        "exposed": sorted(engines.exposed(tools.active_channels(s), tools.platforms(s))),
+        "unexplained": hyp.get("unexplained", []),
         "pending_screenshot": s["pending_screenshot"],
-        "plan": s["plan"],
+        "plan": plan,
+        "resources": resources,
     }
 
 
@@ -103,9 +116,9 @@ async def screenshot(session_id: str = Form(...), note: str = Form(""),
     return {"reply": reply, "state": _public_state(s)}
 
 
-@app.get("/api/plan")
-def plan(session_id: str):
-    return _public_state(_get(session_id))
+@app.post("/api/plan")
+def plan(body: SessionIn):
+    return _public_state(_get(body.session_id))
 
 
 @app.post("/api/exit")
