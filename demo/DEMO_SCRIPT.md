@@ -56,3 +56,7 @@ Open a new window (or Quick Exit and reload):
   are discarded after reading.
 - *Are the menu paths right?* Every entry has an official source URL and a verified date; entries not yet
   checked on a device say so in the panel.
+- *How is the caseworker summary exported? Is it encrypted?* It's never written to disk by the app.
+  It's shown on screen after explicit consent, with Print and Copy, and cleared on close. That
+  avoids a file landing in Downloads or a synced folder. Encrypted file export (so only the
+  advocate can open it) is future work.
