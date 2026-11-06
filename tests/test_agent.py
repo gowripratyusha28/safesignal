@@ -58,3 +58,14 @@ def test_legal_question_adds_operator_instruction(monkeypatch):
     assert [m["role"] for m in s2["messages"]] == ["user", "assistant"]
     agent.run_turn(s2, "[App message, not typed by the person] court screen read")
     assert "system" not in [m["role"] for m in s2["messages"]]
+
+
+def test_plan_request_adds_operator_instruction(monkeypatch):
+    s = _new_session()
+    monkeypatch.setattr(agent, "_call_claude", lambda m: _resp(
+        [{"type": "text", "text": "ok"}], "end_turn"))
+    agent.run_turn(s, "No, nothing like that. What can I do?")
+    assert s["messages"][1] == {"role": "system", "content": agent.PLAN_INSTRUCTION}
+    s2 = _new_session()
+    agent.run_turn(s2, "Is this illegal? What can I do?")   # law question wins
+    assert s2["messages"][1]["content"] == agent.RIGHTS_INSTRUCTION

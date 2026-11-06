@@ -115,9 +115,16 @@ def hypothesize(session: dict) -> dict:
     return run_hypothesis(session)
 
 
-def request_screenshot(session: dict, screen_id: str, instructions: str) -> dict:
+def request_screenshot(session: dict, screen_id: str, instructions: str,
+                       person_offered: bool = False) -> dict:
     if screen_id not in SCREEN_IDS:
         return {"error": f"unknown screen_id {screen_id!r}", "valid_screen_ids": SCREEN_IDS}
+    if session.get("screenshot_declined") and not person_offered:
+        return {"error": "The person declined to upload screenshots. Do not ask for another. "
+                         "Ask the question in words instead (e.g. 'Are you in a Family Sharing "
+                         "group?', 'Does any app have location set to Always?') and record their "
+                         "answer with record_finding (basis interview, or status ruled_out). "
+                         "Only set person_offered=true if they just said they can upload now."}
     session["pending_screenshot"] = {"screen_id": screen_id, "instructions": instructions[:500]}
     from app.vision import SCREEN_HINTS  # local import: vision imports agent
     return {"ok": True, "upload_box_shown": True,
@@ -265,7 +272,10 @@ TOOLS = [
                     "best_check when possible. Instructions should say where to find the "
                     "screen in plain words.",
      "input_schema": _obj({"screen_id": {"type": "string", "enum": SCREEN_IDS},
-                           "instructions": {"type": "string"}},
+                           "instructions": {"type": "string"},
+                           "person_offered": {"type": "boolean",
+                                              "description": "true only if they just said they "
+                                                             "can upload a screenshot now"}},
                           ["screen_id", "instructions"])},
     {"name": "get_fix",
      "description": "Get one vetted playbook fix by id (steps, risks, source). Unknown ids "

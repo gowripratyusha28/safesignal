@@ -68,7 +68,8 @@ How to run the consultation (one question per message):
 3. Listen to what the other person seems to know → record_observation for each thing,
    then hypothesize.
 4. Check the best candidate: request_screenshot for best_check, or ask one interview
-   question for interview_checks. Record what you learn with record_finding
+   question for interview_checks. If they say they can't or won't take a screenshot, never
+   ask for another; ask the same thing in words and record their answer. Record what you learn with record_finding
    (use status "ruled_out" when something is shown NOT to be active).
    Screenshots: the app reads the image itself and asks the person to confirm the reading.
    You then receive an "[App message]" with the reading and whether they confirmed it.
@@ -99,6 +100,16 @@ SYSTEM_BLOCKS = [
 LEGAL_QUESTION = re.compile(
     r"\b(illegal|legal|legally|law|laws|crime|criminal|police|court|rights?|restraining|"
     r"protective order|protection order|injunction|press charges|prosecut\w*)\b", re.I)
+PLAN_REQUEST = re.compile(
+    r"\b(what (can|should|do) i do|what (can|should) we do|give me (a|the) plan|"
+    r"show me (a|the) plan|make (a|the) plan|put (a|the) plan together|what next|"
+    r"what now|next steps?)\b", re.I)
+PLAN_INSTRUCTION = (
+    "Operator note: the person asked what they can do. In this reply, propose a plan from the "
+    "findings recorded so far (find_fixes/get_fix → simulate_plan → get_resources → "
+    "propose_plan), explain it as the tool result describes, and say plainly which possible "
+    "channels are still unchecked. Do not request a screenshot in this reply; ask at most one "
+    "question, in words, at the end.")
 RIGHTS_INSTRUCTION = (
     "Operator note: the person just asked about the law or what protection exists. In this "
     "reply, first call get_resources for their region (ask for their country if unknown) and "
@@ -177,11 +188,15 @@ def _run_turn(session: dict, user_content: list | str) -> str:
     is stored back unchanged."""
     messages = session["messages"]
     messages.append({"role": "user", "content": user_content})
-    if isinstance(user_content, str) and not user_content.startswith("[App message") \
-            and LEGAL_QUESTION.search(user_content):
-        messages.append({"role": "system", "content": RIGHTS_INSTRUCTION})
-        trace.add(session, "app", "question about the law detected → Claude must answer from "
-                                  "the official rights list (get_resources) in this reply")
+    if isinstance(user_content, str) and not user_content.startswith("[App message"):
+        if LEGAL_QUESTION.search(user_content):
+            messages.append({"role": "system", "content": RIGHTS_INSTRUCTION})
+            trace.add(session, "app", "question about the law detected → Claude must answer "
+                                      "from the official rights list (get_resources) in this reply")
+        elif PLAN_REQUEST.search(user_content):
+            messages.append({"role": "system", "content": PLAN_INSTRUCTION})
+            trace.add(session, "app", "asked what they can do → Claude must propose a plan "
+                                      "from current findings in this reply")
 
     for _ in range(MAX_ITERATIONS):
         resp = _call_claude(messages)

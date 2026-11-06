@@ -116,3 +116,15 @@ def test_skip_closes_upload_box(env):
     r = c.post("/api/screenshot/skip", json={"session_id": sid})
     assert r.json()["state"]["pending_screenshot"] is None
     assert seen == [] and s["confirmed_screens"] == set()
+
+
+def test_after_skip_further_screenshot_requests_are_blocked(env):
+    c, sid, s, seen = env
+    tools.request_screenshot(s, "apple_id_devices", "x")
+    c.post("/api/screenshot/skip", json={"session_id": sid})
+    r = tools.request_screenshot(s, "family", "y")
+    assert "error" in r and "in words" in r["error"] and s["pending_screenshot"] is None
+    r = tools.request_screenshot(s, "family", "y", person_offered=True)
+    assert r["ok"] and s["pending_screenshot"]["screen_id"] == "family"
+    upload(c, sid)                                   # a real upload lifts the block
+    assert s["screenshot_declined"] is False

@@ -127,6 +127,7 @@ def screenshot(session_id: str = Form(...), file: UploadFile = File(...)):
     finally:
         del data  # nothing keeps the image after this request
     s["pending_confirmation"] = {"screen_id": pending["screen_id"], "reading": reading}
+    s["screenshot_declined"] = False
     trace.add(s, "vision", f"read screen {pending['screen_id']}: {len(reading['devices'])} devices, "
                            f"{len(reading['people_sharing'])} sharing entries, "
                            f"{len(reading['settings'])} settings; image discarded; awaiting confirmation")
@@ -139,6 +140,9 @@ def skip_screenshot(body: SessionIn):
     s = _get(body.session_id)
     s["pending_screenshot"] = None
     s["pending_confirmation"] = None
+    s["screenshot_declined"] = True   # from now on Claude must ask in words (tools.py)
+    trace.add(s, "user", "declined screenshot → further screenshot requests blocked; "
+                         "questions in words only")
     return {"state": _public_state(s)}
 
 
