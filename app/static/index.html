@@ -60,6 +60,26 @@
   .confirm button { border-radius:8px; padding:6px 14px; cursor:pointer; border:1px solid var(--line); background:#fff; }
   .confirm button.yes { background:var(--safe); color:#fff; border:0; }
   .confirm textarea { width:100%; margin-top:8px; font:inherit; padding:6px; border:1px solid var(--line); border-radius:6px; }
+  #export-box label { font-size:13px; display:flex; gap:6px; align-items:flex-start; margin:6px 0; }
+  #export-box .warn { font-size:12px; color:var(--muted); }
+  #export-btn { margin-top:6px; padding:6px 12px; border-radius:8px; border:1px solid var(--line);
+                background:#fff; cursor:pointer; }
+  #export-view { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:20;
+                 align-items:center; justify-content:center; }
+  #export-view .sheet { background:#fff; border-radius:10px; width:min(760px, 94vw);
+                        max-height:88vh; display:flex; flex-direction:column; }
+  #export-view pre { margin:0; padding:16px; overflow:auto; font-size:13px; white-space:pre-wrap; }
+  #export-view .bar { display:flex; gap:8px; padding:10px 16px; border-top:1px solid var(--line);
+                      align-items:center; flex-wrap:wrap; }
+  #export-view .bar button { padding:6px 14px; border-radius:8px; border:1px solid var(--line);
+                             background:#fff; cursor:pointer; }
+  #export-view .bar .note { font-size:12px; color:var(--muted); flex:1; min-width:200px; }
+  @media print {
+    body.printing > *:not(#export-view) { display:none !important; }
+    body.printing #export-view { position:static; display:block !important; background:none; }
+    body.printing #export-view .bar { display:none; }
+    body.printing #export-view .sheet { max-height:none; width:auto; }
+  }
   .notice { background:#fff9db; border:1px solid #ffe066; border-radius:8px; padding:8px 10px;
             font-size:13px; margin:6px 0; }
 </style>
@@ -95,8 +115,25 @@
     <div id="plan"><div class="empty">No plan yet.</div></div>
     <h2>Support</h2>
     <ul class="list" id="resources"><li class="empty">—</li></ul>
+    <h2>Caseworker summary</h2>
+    <div id="export-box">
+      <div class="warn">Technical findings only, with no conversation and no names, for sharing with an advocate. It's shown on screen and not saved anywhere.</div>
+      <label><input type="checkbox" id="export-consent"> I want to create this summary, and I'll only share it in a way the other person can't see. I won't save it to Downloads, a shared cloud or a shared email.</label>
+      <button id="export-btn" disabled>Show summary</button>
+    </div>
   </aside>
 </main>
+<div id="export-view" role="dialog" aria-modal="true">
+  <div class="sheet">
+    <pre id="export-text"></pre>
+    <div class="bar">
+      <span class="note">Copying may sync to other devices signed into your Apple ID (Universal Clipboard). Printing is safest on a device the other person can't access.</span>
+      <button id="export-print">Print</button>
+      <button id="export-copy">Copy</button>
+      <button id="export-close">Close</button>
+    </div>
+  </div>
+</div>
 <script>
 // No localStorage, no cookies, no analytics. Session id lives only in this variable.
 let SID = null;
@@ -317,6 +354,29 @@ function showConfirm(reading) {
     finally { busy(false); }
   }
 }
+
+$("export-consent").addEventListener("change", (e) => { $("export-btn").disabled = !e.target.checked; });
+$("export-btn").addEventListener("click", async () => {
+  try {
+    const r = await api("/api/export", { session_id: SID, consent: $("export-consent").checked });
+    $("export-text").textContent = r.summary;
+    $("export-view").style.display = "flex";
+  } catch (e) { add("Couldn't create the summary: " + e.message, "sys"); }
+});
+function closeExport() {
+  $("export-view").style.display = "none";
+  $("export-text").textContent = "";           // don't leave it in the page
+  $("export-consent").checked = false; $("export-btn").disabled = true;
+}
+$("export-close").addEventListener("click", closeExport);
+$("export-print").addEventListener("click", () => {
+  document.body.classList.add("printing"); window.print(); document.body.classList.remove("printing");
+});
+$("export-copy").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText($("export-text").textContent); $("export-copy").textContent = "Copied"; }
+  catch { $("export-copy").textContent = "Copy failed"; }
+  setTimeout(() => { $("export-copy").textContent = "Copy"; }, 1500);
+});
 
 // Quick exit: wipe server session, clear the page, replace history entry.
 function quickExit() {

@@ -13,6 +13,7 @@ from fastapi.responses import FileResponse  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
 
 from app import agent, engines, tools, validator, vision  # noqa: E402
+from app import export as export_mod  # noqa: E402
 
 app = FastAPI(title="SafeSignal", docs_url=None, redoc_url=None)
 
@@ -182,9 +183,17 @@ def quick_exit(body: SessionIn):
     return {"ok": True}
 
 
+class ExportIn(BaseModel):
+    session_id: str
+    consent: bool = False
+
+
 @app.post("/api/export")
-def export(body: SessionIn):
-    raise HTTPException(501, "Caseworker export not built yet (P2).")
+def export(body: ExportIn):
+    """Caseworker summary, only with explicit consent. Generated on demand, never stored."""
+    if body.consent is not True:
+        raise HTTPException(400, "Export needs your explicit consent.")
+    return {"summary": export_mod.build_summary(_get(body.session_id))}
 
 
 @app.get("/")
