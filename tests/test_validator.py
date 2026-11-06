@@ -268,7 +268,7 @@ def test_uk_resources():
 
 def test_unknown_region_invents_nothing():
     r = v.resources_for("Atlantis")
-    assert r["found"] is False and r["resources"] == []
+    assert r["found"] is False and all(x["region"] == "GLOBAL" for x in r["resources"])
 
 
 def test_missing_region():

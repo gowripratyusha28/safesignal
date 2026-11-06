@@ -89,12 +89,14 @@ def resources_for(region: str | None) -> dict:
     country = reg.split("-")[0]
     local = [r for r in all_res if r["region"] == reg and reg != country]
     national = [r for r in all_res if r["region"] == country]
+    global_ = [r for r in all_res if r["region"] == "GLOBAL"]
     found = local + national
     if not found:
-        return {"found": False, "region": reg, "resources": [],
-                "note": "No vetted resources for this region. Suggest their local emergency "
-                        "number; do not name organizations or numbers."}
-    return {"found": True, "region": reg, "resources": found}
+        return {"found": False, "region": reg, "resources": global_,
+                "note": "No vetted local resources for this region; only global services are "
+                        "listed. Suggest their local emergency number; do not name other "
+                        "organizations or numbers."}
+    return {"found": True, "region": reg, "resources": found + global_}
 
 
 def rights_for(region: str | None) -> list[dict]:
@@ -217,9 +219,16 @@ def validate_plan(fix_ids: list[str], safety_mode: str | None,
                               "closest_matches": r["closest_matches"]} for r in rejected]}
 
     notices: list[str] = []
+    unexplained = (last_hypothesis or {}).get("unexplained") or []
 
     # Rule 4: anything that can erase evidence needs documentation first.
     ids = list(fix_ids)
+    # Unexplained location → add the safe, passive tracker check (code decides, not Claude).
+    if "location" in unexplained and "check_unknown_tracker_alerts" in fixes \
+            and "check_unknown_tracker_alerts" not in ids:
+        ids.append("check_unknown_tracker_alerts")
+        notices.append("Added a safe check for physical trackers, because the location "
+                       "observations aren't explained by what we checked.")
     if any(fixes[f]["evidence_loss"] for f in ids) and "document_evidence" not in ids:
         ids.insert(0, "document_evidence")
 
@@ -250,7 +259,6 @@ def validate_plan(fix_ids: list[str], safety_mode: str | None,
 
     # Resources Claude chose, plus rule 7: unexplained → expert resource + notice.
     chosen = [resources[r] for r in dict.fromkeys(resource_ids)]
-    unexplained = (last_hypothesis or {}).get("unexplained") or []
     unexplained_notice = None
     if unexplained:
         unexplained_notice = UNEXPLAINED_NOTICE

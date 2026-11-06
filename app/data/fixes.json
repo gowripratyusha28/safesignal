@@ -326,5 +326,23 @@
     ],
     "source": "FCC Safe Connections Act order (draft FCC-CIRC2311-02, check final FCC 23-96) https://docs.fcc.gov/public/attachments/DOC-397987A1.pdf",
     "verified_on": "UNVERIFIED"
+  },
+  {
+    "id": "check_unknown_tracker_alerts",
+    "title": "Check your phone's unknown-tracker alerts",
+    "platform": "any",
+    "closes": [],
+    "steps": [
+      "iPhone: alerts are on by default. If you get an alert that an item is moving with you, tap it → Continue → Find Nearby to locate it. To review past alerts: Find My → Items → Items Detected With You.",
+      "Android (6 and up): Settings → Safety & Emergency → Unknown tracker alerts → Scan now (about 10 seconds). Make sure alerts are turned on.",
+      "If a tracker is found: before doing anything else, take a screenshot of the item and owner information (or photograph it with a safe device). Don't disable it yet; an advocate or the police can advise. Turning off Bluetooth or Location Services does not stop it."
+    ],
+    "may_notify_abuser": false,
+    "loses_access": false,
+    "evidence_loss": false,
+    "risk_note": "Checking is passive and safe. Disabling a found tracker may notify its owner, so document first and talk to an advocate.",
+    "prerequisites": [],
+    "source": "Apple https://support.apple.com/en-us/119874 ; https://support.apple.com/guide/personal-safety/detect-unwanted-trackers-ips139b15fd9/web ; Google https://support.google.com/android/answer/13658562",
+    "verified_on": "UNVERIFIED"
   }
 ]

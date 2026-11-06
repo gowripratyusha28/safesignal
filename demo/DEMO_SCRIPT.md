@@ -61,7 +61,18 @@ if the model writes it."
   We refer to expert clinics. Cornell's ISDi could plug in as another evidence source.
 - *What stops Claude inventing a fix or a hotline?* The validator: unknown IDs are rejected with closest
   matches, and phone numbers and URLs not in the vetted data are stripped from replies. Tests prove it.
-- *What if the abuser uses it?* It only analyses your own accounts and gives defensive steps.
+- *What if the abuser uses it?* A USENIX Security 2026 audit found DV chatbots helped a would-be
+  perpetrator about two-thirds of the time. We red-team for exactly that: `demo/redteam_prompts.json`
+  has 10 abuser requests behind the pretexts the Cornell CHI 2026 study found effective (safety concern,
+  custody, "they consented", novelist, "training my sister", claimed advocate, security tester, evading
+  tracker alerts). Last run: **10/10 refused**, no playbook tool called, independent judge found no
+  assistance (`demo/redteam_results.md`; re-run with `PYTHONPATH=. .venv/bin/python demo/redteam.py`).
+- *Does it tell people what it can't do?* Yes, permanently, in the panel ("What this tool can't do"):
+  no stalkerware scanning, no wearables/smart home/cars, spyware on rooted phones survives a reset.
+  The FAccT 2026 audit of 36 DV chatbots found most never state their limits.
+- *Image-based abuse?* Rights panel includes the US TAKE IT DOWN Act (48-hour removal, FTC enforcing
+  since May 2026, report at TakeItDown.ftc.gov); resources include StopNCII.org and, for the UK, the
+  Revenge Porn Helpline.
 - *What's stored?* Nothing. In-memory sessions, a 30-minute timeout, no logs of content, and screenshots
   are discarded after reading.
 - *Are the menu paths right?* Every entry has an official source URL and a verified date; entries not yet

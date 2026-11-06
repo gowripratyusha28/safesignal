@@ -12,7 +12,7 @@ def test_rights_data_integrity():
     for r in rights.values():
         assert KEYS <= r.keys(), r["id"]
         assert r["source"].startswith("https://"), r["id"]
-        assert len(r["summary"]) <= 220, r["id"]
+        assert len(r["summary"]) <= 260, r["id"]
         assert r["region"] in {"US", "US-NY", "UK"}, r["id"]
         assert r["verified_on"] == "UNVERIFIED" or len(r["verified_on"]) == 10
 

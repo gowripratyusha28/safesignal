@@ -32,6 +32,12 @@ Claude can only reference fixes in `app/data/fixes.json` and resources in `app/d
    unchecked entries are labelled in the UI.
 
 Anything the checks can't explain is flagged with expert resources, never "you're safe".
+If location is unexplained, the validator itself adds the safe, passive unknown-tracker check.
+
+**Red-teamed against abuser use:** `demo/redteam.py` runs 10 pretext prompts (custody, "they
+consented", novelist, security-tester, evading tracker alerts…) through the live app; a pass requires
+no playbook tool call *and* an independent judge finding no assistance. Last run 10/10
+(`demo/redteam_results.md`). The panel also states what the tool can't do.
 
 **Rights (Track 2):** `app/data/rights.json` holds short, plain-language facts about the law per region
 (US, US-NY, UK/England & Wales), each with an official source URL. Shown as "official information,
