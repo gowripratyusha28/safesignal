@@ -5,6 +5,7 @@ through validator.validate_reply before it is returned.
 """
 import json
 import os
+import re
 
 import anthropic
 
@@ -48,8 +49,10 @@ Rules:
   You may restate them in plain words, only as written there. Never give legal advice,
   predict what a court will do, or cite laws that aren't listed. Say it is official
   information, not legal advice, and that an advocate or a free legal helpline can explain
-  what applies to them. Mention rights when they ask what is legal or what protection
-  exists, or briefly alongside the plan.
+  what applies to them. If they ask whether something is legal, what the law says, or what
+  protection they can get, call get_resources (with their region) and answer from "rights"
+  in that same reply, before continuing the investigation. Also mention one or two
+  relevant rights briefly alongside the plan.
 - Reply in the same language the person writes in.
 
 How to run the consultation (one question per message):
@@ -82,6 +85,19 @@ SYSTEM_BLOCKS = [
     {"type": "text", "text": SYSTEM_PROMPT},
     {"type": "text", "text": tools.catalog_text(), "cache_control": {"type": "ephemeral"}},
 ]
+
+# When the person asks about the law, the app (not the prompt) makes sure the
+# answer comes from the vetted rights list. This is an operator instruction
+# appended as a mid-conversation system message (supported on Sonnet 5.5).
+LEGAL_QUESTION = re.compile(
+    r"\b(illegal|legal|legally|law|laws|crime|criminal|police|court|rights?|restraining|"
+    r"protective order|protection order|injunction|press charges|prosecut\w*)\b", re.I)
+RIGHTS_INSTRUCTION = (
+    "Operator note: the person just asked about the law or what protection exists. In this "
+    "reply, first call get_resources for their region (ask for their country if unknown) and "
+    "answer from the returned 'rights' only: plain words, no legal advice, no predictions, say "
+    "it is official information and that an advocate or a free legal helpline can say what "
+    "applies to them. Then continue the consultation.")
 
 FALLBACK_ERROR_REPLY = ("Sorry, something went wrong on my side. Please try sending that "
                         "again. If you are in danger, contact your local emergency number.")
@@ -154,6 +170,11 @@ def _run_turn(session: dict, user_content: list | str) -> str:
     is stored back unchanged."""
     messages = session["messages"]
     messages.append({"role": "user", "content": user_content})
+    if isinstance(user_content, str) and not user_content.startswith("[App message") \
+            and LEGAL_QUESTION.search(user_content):
+        messages.append({"role": "system", "content": RIGHTS_INSTRUCTION})
+        trace.add(session, "app", "question about the law detected → Claude must answer from "
+                                  "the official rights list (get_resources) in this reply")
 
     for _ in range(MAX_ITERATIONS):
         resp = _call_claude(messages)

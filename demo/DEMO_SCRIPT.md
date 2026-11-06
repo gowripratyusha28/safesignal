@@ -66,6 +66,10 @@ if the model writes it."
   are discarded after reading.
 - *Are the menu paths right?* Every entry has an official source URL and a verified date; entries not yet
   checked on a device say so in the panel.
+- *Can it answer "is what he's doing illegal?"* Yes: type it and Claude answers from the vetted rights
+  list for the region, labelled "official information, not legal advice", then continues. Code detects
+  the question and forces that path (see the `app:` line in Under the hood); Claude can't cite a law
+  that isn't in `rights.json`.
 - *How is the caseworker summary exported? Is it encrypted?* It's never written to disk by the app.
   It's shown on screen after explicit consent, with Print and Copy, and cleared on close. That
   avoids a file landing in Downloads or a synced folder. Encrypted file export (so only the

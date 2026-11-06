@@ -41,3 +41,20 @@ def test_reply_is_validated(monkeypatch):
         [{"type": "text", "text": "You're safe now. Call 1-888-555-0199."}], "end_turn"))
     reply = agent.run_turn(s, "hi")
     assert "safe now" not in reply and "555" not in reply
+
+
+def test_legal_question_adds_operator_instruction(monkeypatch):
+    s = _new_session()
+    monkeypatch.setattr(agent, "_call_claude", lambda m: _resp(
+        [{"type": "text", "text": "ok"}], "end_turn"))
+    agent.run_turn(s, "Is what he's doing even illegal?")
+    roles = [m["role"] for m in s["messages"]]
+    assert roles == ["user", "system", "assistant"]
+    assert s["messages"][1]["content"] == agent.RIGHTS_INSTRUCTION
+    assert any("rights list" in e["text"] for e in s["trace"])
+
+    s2 = _new_session()
+    agent.run_turn(s2, "He always knows where I am.")
+    assert [m["role"] for m in s2["messages"]] == ["user", "assistant"]
+    agent.run_turn(s2, "[App message, not typed by the person] court screen read")
+    assert "system" not in [m["role"] for m in s2["messages"]]
