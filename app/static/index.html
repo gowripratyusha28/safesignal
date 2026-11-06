@@ -51,6 +51,14 @@
   .step .d { color:var(--muted); font-size:13px; margin-top:3px; }
   .step .src { color:var(--muted); font-size:11px; margin-top:3px; }
   .subhead { font-size:12px; font-weight:700; color:var(--warn); margin:10px 0 2px; }
+  .confirm { background:#fff; border:1px solid var(--accent); border-radius:12px; padding:10px 14px;
+             margin:6px 0; max-width:85%; font-size:14px; }
+  .confirm .row { margin:3px 0; }
+  .confirm .k { font-weight:600; }
+  .confirm .btns { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+  .confirm button { border-radius:8px; padding:6px 14px; cursor:pointer; border:1px solid var(--line); background:#fff; }
+  .confirm button.yes { background:var(--safe); color:#fff; border:0; }
+  .confirm textarea { width:100%; margin-top:8px; font:inherit; padding:6px; border:1px solid var(--line); border-radius:6px; }
   .notice { background:#fff9db; border:1px solid #ffe066; border-radius:8px; padding:8px 10px;
             font-size:13px; margin:6px 0; }
 </style>
@@ -138,7 +146,9 @@ function render(state) {
 
   fill("resources", (state.resources || []).map(r => li(r.name + " — " + r.contact)), "—");
 
-  $("upload").style.display = state.pending_screenshot ? "block" : "none";
+  $("upload").style.display = state.pending_screenshot && !state.pending_confirmation ? "block" : "none";
+  if (state.pending_screenshot && state.pending_screenshot.instructions)
+    $("upload-hint").textContent = state.pending_screenshot.instructions + " — Screenshots saved on a phone that may be compromised can sync to someone else through shared iCloud Photos. If you can, photograph the screen with a safe device.";
 }
 
 function el(tag, cls, text) {
@@ -246,11 +256,59 @@ $("send-file").addEventListener("click", async () => {
     const r = await fetch("/api/screenshot", { method: "POST", body: fd });
     const j = await r.json();
     if (!r.ok) throw new Error(j.detail || r.statusText);
-    thinking.textContent = j.reply;
+    thinking.remove();
     render(j.state);
+    showConfirm(j.reading);
   } catch (e) { thinking.textContent = "Couldn't read that: " + e.message; }
   finally { busy(false); $("file").value = ""; }
 });
+
+// Show what was read and let the person confirm. Only this click can make a finding "verified".
+function showConfirm(reading) {
+  const card = el("div", "confirm");
+  card.appendChild(el("div", "row", "Here's what I can see on that screen. Is this right?"));
+  const row = (k, v) => { const r = el("div", "row"); r.appendChild(el("span", "k", k + ": ")); r.appendChild(document.createTextNode(v)); card.appendChild(r); };
+  if (!reading.matches_requested_screen) row("Note", "This may not be the screen I asked for (" + reading.screen + ").");
+  if (reading.devices.length) row("Devices", reading.devices.join(", "));
+  reading.people_sharing.forEach(p => row("Shared with " + p.name, p.what));
+  reading.settings.forEach(x => row(x.name, x.state));
+  if (reading.uncertain.length) row("Couldn't read clearly", reading.uncertain.join("; "));
+  if (reading.need_more) row("Also needed", reading.need_more);
+  if (!reading.devices.length && !reading.people_sharing.length && !reading.settings.length)
+    row("Nothing found", "I couldn't find anything to list on this screen.");
+  const btns = el("div", "btns");
+  const yes = el("button", "yes", "Yes, that's right");
+  const no = el("button", "", "No, something's wrong");
+  btns.append(yes, no);
+  card.appendChild(btns);
+  $("log").appendChild(card);
+  $("log").scrollTop = $("log").scrollHeight;
+  let corr = null;
+  yes.onclick = () => answer(true);
+  no.onclick = () => {
+    if (!corr) {
+      corr = el("textarea");
+      corr.placeholder = "Optional: what's wrong? (no names or addresses needed)";
+      card.insertBefore(corr, btns);
+      no.textContent = "Send";
+      return;
+    }
+    answer(false);
+  };
+  async function answer(ok) {
+    yes.disabled = no.disabled = true;
+    add(ok ? "Yes, that's right" : "No, that's not right", "user");
+    const thinking = add("…", "bot");
+    busy(true);
+    try {
+      const r = await api("/api/screenshot/confirm",
+        { session_id: SID, confirmed: ok, correction: corr ? corr.value : "" });
+      thinking.textContent = r.reply;
+      render(r.state);
+    } catch (e) { thinking.textContent = "Something went wrong: " + e.message; }
+    finally { busy(false); }
+  }
+}
 
 // Quick exit: wipe server session, clear the page, replace history entry.
 function quickExit() {

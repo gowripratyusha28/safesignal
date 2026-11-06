@@ -18,6 +18,11 @@ def active_channels(session: dict) -> set[str]:
     return set(session["findings"])
 
 
+def screen_for(channel_id: str) -> str | None:
+    how = data_store.channels()[channel_id]["how_to_verify"]
+    return how.split(":", 1)[1] if how.startswith("screenshot:") else None
+
+
 def platforms(session: dict) -> set[str] | None:
     return set(session["platforms"]) if session["platforms"] else None
 
@@ -78,13 +83,14 @@ def record_finding(session: dict, channel_id: str, evidence_level: str, basis: s
         session["ruled_out"].add(channel_id)
         return {"ok": True, "ruled_out": channel_id}
     session["ruled_out"].discard(channel_id)
-    prev = session["findings"].get(channel_id, {})
     finding = {
         "channel_id": channel_id,
         "evidence_level": evidence_level,
         "basis": basis,
-        # Only the user's click on "Yes, that's right" sets this (see main.py). Never Claude.
-        "screenshot_confirmed": prev.get("screenshot_confirmed", False),
+        # Decided by code: true only if the user clicked "Yes, that's right" on a
+        # reading of the screen that verifies this channel (see main.py). Never Claude.
+        "screenshot_confirmed": (basis == "screenshot"
+                                 and screen_for(channel_id) in session["confirmed_screens"]),
         "note": note[:200],
     }
     [checked], flags = validator.validate_findings([finding])
