@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
+<link rel="icon" href="data:,">
 <title>SafeSignal</title>
 <style>
   :root { --bg:#f7f6f3; --card:#fff; --ink:#222; --muted:#666; --accent:#3b5bdb;
@@ -75,6 +76,7 @@
       <p id="upload-hint">Screenshots saved on a phone that may be compromised can sync to someone else through shared iCloud Photos. If you can, photograph the screen with a safe device.</p>
       <input type="file" id="file" accept="image/png,image/jpeg,image/webp,image/gif">
       <button class="primary" id="send-file" style="padding:6px 14px">Send screenshot</button>
+      <button id="skip-file" style="padding:6px 14px; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer">Not now</button>
     </div>
     <form id="send">
       <textarea id="text" rows="2" placeholder="Type here… (nothing is saved)"></textarea>
@@ -261,6 +263,12 @@ $("send-file").addEventListener("click", async () => {
     showConfirm(j.reading);
   } catch (e) { thinking.textContent = "Couldn't read that: " + e.message; }
   finally { busy(false); $("file").value = ""; }
+});
+
+$("skip-file").addEventListener("click", async () => {
+  try { render((await api("/api/screenshot/skip", { session_id: SID })).state); }
+  catch (e) { $("upload").style.display = "none"; }
+  add("Skipped the screenshot for now. You can tell me in words instead, or ask for another way to check.", "sys");
 });
 
 // Show what was read and let the person confirm. Only this click can make a finding "verified".

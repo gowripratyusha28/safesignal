@@ -106,7 +106,10 @@ def request_screenshot(session: dict, screen_id: str, instructions: str) -> dict
     if screen_id not in SCREEN_IDS:
         return {"error": f"unknown screen_id {screen_id!r}", "valid_screen_ids": SCREEN_IDS}
     session["pending_screenshot"] = {"screen_id": screen_id, "instructions": instructions[:500]}
+    from app.vision import SCREEN_HINTS  # local import: vision imports agent
     return {"ok": True, "upload_box_shown": True,
+            "where_to_find": SCREEN_HINTS.get(screen_id, ""),
+            "use_this_path": "Describe where to find the screen using where_to_find only.",
             "remember": "Tell them screenshots saved on a phone that may be compromised can "
                         "sync through shared iCloud Photos; photographing the screen with a "
                         "safe device is safer."}

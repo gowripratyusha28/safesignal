@@ -126,6 +126,15 @@ def screenshot(session_id: str = Form(...), file: UploadFile = File(...)):
     return {"reading": reading, "state": _public_state(s)}
 
 
+@app.post("/api/screenshot/skip")
+def skip_screenshot(body: SessionIn):
+    """The person chose not to upload; just close the upload box."""
+    s = _get(body.session_id)
+    s["pending_screenshot"] = None
+    s["pending_confirmation"] = None
+    return {"state": _public_state(s)}
+
+
 class ConfirmIn(BaseModel):
     session_id: str
     confirmed: bool

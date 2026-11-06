@@ -23,12 +23,13 @@ Rules:
 SCREEN_HINTS = {
     "safety_check_people": "Safety Check → Manage Sharing & Access, or Find My → People "
                            "(who can see their location / what is shared)",
-    "family": "Settings → [name] → Family (Family Sharing members)",
+    "family": "Settings → Family, below your name (older iOS: Settings → [name] → Family Sharing)",
     "apple_id_devices": "Settings → [name] → device list (devices signed into the Apple Account)",
-    "text_forwarding": "Settings → Messages → Text Message Forwarding",
+    "text_forwarding": "Settings → Apps → Messages → Text Message Forwarding "
+                       "(older iOS: Settings → Messages → Text Message Forwarding)",
     "sign_in_security": "Settings → [name] → Sign-In & Security (recovery email, trusted numbers)",
-    "google_devices": "Google account → Security → Your devices",
-    "google_maps_sharing": "Google Maps → Location sharing",
+    "google_devices": "myaccount.google.com → Security & sign-in → Your devices",
+    "google_maps_sharing": "myaccount.google.com → People & sharing → Location Sharing",
     "whatsapp_linked": "WhatsApp → Settings → Linked devices",
     "location_services_apps": "Settings → Privacy & Security → Location Services (app list)",
     "vpn_device_management": "Settings → General → VPN & Device Management",

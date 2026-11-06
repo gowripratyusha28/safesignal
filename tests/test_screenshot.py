@@ -106,3 +106,11 @@ def test_vision_failure_is_friendly(env, monkeypatch):
     tools.request_screenshot(s, "apple_id_devices", "x")
     r = upload(c, sid)
     assert r.status_code == 502 and s["pending_screenshot"] is not None
+
+
+def test_skip_closes_upload_box(env):
+    c, sid, s, seen = env
+    tools.request_screenshot(s, "apple_id_devices", "x")
+    r = c.post("/api/screenshot/skip", json={"session_id": sid})
+    assert r.json()["state"]["pending_screenshot"] is None
+    assert seen == [] and s["confirmed_screens"] == set()
