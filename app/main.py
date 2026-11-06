@@ -12,7 +12,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile  # noqa: E402
 from fastapi.responses import FileResponse  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
 
-from app import agent, engines, tools, validator, vision  # noqa: E402
+from app import agent, engines, tools, trace, validator, vision  # noqa: E402
 from app import export as export_mod  # noqa: E402
 
 app = FastAPI(title="SafeSignal", docs_url=None, redoc_url=None)
@@ -77,6 +77,7 @@ def _public_state(s: dict) -> dict:
         "pending_confirmation": s["pending_confirmation"],
         "plan": plan,
         "resources": resources,
+        "trace": s.get("trace", []),
     }
 
 
@@ -125,6 +126,9 @@ def screenshot(session_id: str = Form(...), file: UploadFile = File(...)):
     finally:
         del data  # nothing keeps the image after this request
     s["pending_confirmation"] = {"screen_id": pending["screen_id"], "reading": reading}
+    trace.add(s, "vision", f"read screen {pending['screen_id']}: {len(reading['devices'])} devices, "
+                           f"{len(reading['people_sharing'])} sharing entries, "
+                           f"{len(reading['settings'])} settings; image discarded; awaiting confirmation")
     return {"reading": reading, "state": _public_state(s)}
 
 
@@ -156,6 +160,12 @@ def confirm_screenshot(body: ConfirmIn):
     if confirmed:
         s["confirmed_screens"].add(pc["screen_id"])
         s["pending_screenshot"] = None
+        trace.add(s, "user", f"confirmed reading of {pc['screen_id']} → 'verified' now allowed "
+                             f"for its channel only")
+    elif body.confirmed:
+        trace.add(s, "user", f"reading of {pc['screen_id']} not usable (wrong screen) → not confirmed")
+    else:
+        trace.add(s, "user", f"rejected reading of {pc['screen_id']} → nothing verified")
     s["pending_confirmation"] = None
     if confirmed:
         status = "The person CONFIRMED this reading is correct."
@@ -198,5 +208,10 @@ def export(body: ExportIn):
 
 
 @app.get("/")
+def landing():
+    return FileResponse(STATIC / "landing.html", headers={"Cache-Control": "no-store"})
+
+
+@app.get("/chat")
 def index():
     return FileResponse(STATIC / "index.html", headers={"Cache-Control": "no-store"})

@@ -8,7 +8,7 @@ import os
 
 import anthropic
 
-from app import tools, validator
+from app import tools, trace, validator
 
 MODEL = "claude-sonnet-5-5"
 MAX_ITERATIONS = 8
@@ -35,6 +35,8 @@ Rules:
   tracker, someone they both know, an app we didn't cover), and show expert resources.
   Never imply they are now safe.
 - Never perform or claim to perform changes. The survivor decides.
+- If their contact situation changes later (e.g. they mention still seeing the person),
+  call set_safety_mode again; the plan is re-checked automatically.
 - Don't add your own device instructions (for example how to delete photos or change
   settings) beyond the playbook steps and the screenshot safety note. If they decline a
   screenshot, don't push; continue with interview questions or the plan.
@@ -111,9 +113,15 @@ def _run_tool(session: dict, name: str, tool_input: dict) -> tuple[str, bool]:
     if handler is None:
         return json.dumps({"error": f"unknown tool {name}"}), True
     try:
-        return json.dumps(handler(session, **tool_input)), False
+        out = handler(session, **tool_input)
     except Exception as e:  # report to Claude, don't crash the turn
+        trace.add(session, name, f"tool error: {type(e).__name__}")
         return json.dumps({"error": str(e)}), True
+    try:
+        trace.for_tool(session, name, tool_input, out)
+    except Exception:  # the trace is cosmetic; never let it break a turn
+        pass
+    return json.dumps(out), False
 
 
 def run_turn(session: dict, user_content: list | str) -> str:
@@ -129,7 +137,9 @@ def run_turn(session: dict, user_content: list | str) -> str:
     except Exception:  # API or tool bug: never leave a half-finished turn behind
         del session["messages"][start:]
         return FALLBACK_ERROR_REPLY
-    text, _flags = validator.validate_reply(text)  # flags not logged: no content logs
+    text, flags = validator.validate_reply(text)
+    for f in flags:  # record the kind of removal only, never the removed text
+        trace.add(session, "reply check", f.split(":", 1)[0])
     return text or "I'm here. Could you tell me a bit more?"
 
 

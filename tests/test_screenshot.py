@@ -37,7 +37,9 @@ def test_upload_returns_reading_and_keeps_image_out_of_history(env):
     r = upload(c, sid)
     assert r.status_code == 200 and r.json()["reading"]["devices"] == READING["devices"]
     assert s["messages"] == [] and seen == []   # nothing sent to the agent yet
-    assert "image" not in str(s) .replace("image/png", "")  # no image block anywhere
+    assert not any(isinstance(b, dict) and b.get("type") == "image"
+                   for m in s["messages"] for b in (m["content"] if isinstance(m["content"], list) else []))
+    assert "data:" not in str(s["pending_confirmation"])  # only the JSON reading is kept
 
 
 def test_rejects_non_image(env):
