@@ -108,6 +108,10 @@
     <div id="mode"><span class="badge">Not set yet</span></div>
     <h2>Findings</h2>
     <ul class="list" id="findings"><li class="empty">Nothing recorded yet.</li></ul>
+    <div id="to-check-wrap" style="display:none">
+      <h2>Possible explanations to check</h2>
+      <ul class="list" id="to-check"></ul>
+    </div>
     <h2>What may be exposed</h2>
     <ul class="list" id="exposed"><li class="empty">—</li></ul>
     <div id="unexplained"></div>
@@ -178,6 +182,9 @@ function render(state) {
     return li(f.label || f.channel_id, c);
   }), "Nothing recorded yet.");
 
+  const tc = state.to_check || [];
+  $("to-check-wrap").style.display = tc.length ? "block" : "none";
+  fill("to-check", tc.map(f => { const e = li(f.label); e.style.color = "var(--muted)"; return e; }), "");
   fill("exposed", (state.exposed || []).map(x => li(x.replaceAll("_", " "))), "—");
 
   renderUnexplained(state);

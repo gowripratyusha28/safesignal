@@ -28,7 +28,7 @@ def test_summary_has_technical_findings():
     assert "Generated: 2026-11-06" in t
     assert "Covert" in t and "apple" in t and "UK" in t
     assert "Knows your Apple ID password: reported by survivor" in t
-    assert "Location shared via Find My: plausible" in t
+    assert "Find My" not in t  # inference-only guess is not a finding
     assert "CHECKED AND NOT FOUND ACTIVE" in t and "Knows your phone passcode" in t
     assert "discuss with advocate first" in t
     assert "0808 2000 247" in t

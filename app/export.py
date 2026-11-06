@@ -22,7 +22,7 @@ LEVEL_TEXT = {
 
 def build_summary(session: dict, today: date | None = None) -> str:
     today = today or date.today()
-    findings, _ = validator.validate_findings(list(session["findings"].values()))
+    findings, _possible = tools.split_findings(session)  # inference-only guesses excluded
     chans = data_store.channels()
     plan = session["plan"]
     vocab = set(engines.observables())

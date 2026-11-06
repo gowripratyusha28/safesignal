@@ -94,3 +94,29 @@ def test_public_state_has_no_conversation_text():
 def test_catalog_is_deterministic():
     assert tools.catalog_text() == tools.catalog_text()
     assert "stop_find_my_sharing" in tools.catalog_text()
+
+
+def test_inference_only_is_a_possibility_not_a_finding():
+    s = demo_session()
+    tools.record_finding(s, "apple_id_password", "reported", "interview")
+    tools.record_finding(s, "find_my_sharing", "plausible", "inference")
+    state = _public_state(s)
+    assert [f["channel_id"] for f in state["findings"]] == ["apple_id_password"]
+    assert [f["channel_id"] for f in state["to_check"]] == ["find_my_sharing"]
+    assert tools.active_channels(s) == {"apple_id_password"}
+
+
+def test_inference_only_does_not_count_toward_exposure():
+    s = demo_session()
+    tools.record_finding(s, "sms_forwarding", "plausible", "inference")
+    assert _public_state(s)["exposed"] == []
+    assert tools.simulate_plan(s, [])["still_exposed"] == []
+
+
+def test_inference_upgraded_by_interview_becomes_finding():
+    s = demo_session()
+    tools.record_finding(s, "find_my_sharing", "plausible", "inference")
+    tools.record_finding(s, "find_my_sharing", "reported", "interview")
+    state = _public_state(s)
+    assert [f["channel_id"] for f in state["findings"]] == ["find_my_sharing"]
+    assert state["to_check"] == [] and "location" in state["exposed"]

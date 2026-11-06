@@ -60,7 +60,7 @@ def _get(sid: str) -> dict:
 
 def _public_state(s: dict) -> dict:
     """What the right-hand panel shows. Never includes conversation text."""
-    findings, _ = validator.validate_findings(list(s["findings"].values()))
+    findings, to_check = tools.split_findings(s)
     hyp = s["last_hypothesis"] or {}
     plan = s["plan"]
     resources = (plan["resources"] if plan and plan["resources"]
@@ -70,6 +70,7 @@ def _public_state(s: dict) -> dict:
         "platforms": s["platforms"],
         "findings": [{k: f[k] for k in ("channel_id", "label", "evidence_level", "basis")}
                      for f in findings],
+        "to_check": [{"channel_id": f["channel_id"], "label": f["label"]} for f in to_check],
         "exposed": sorted(engines.exposed(tools.active_channels(s), tools.platforms(s))),
         "unexplained": hyp.get("unexplained", []),
         "pending_screenshot": s["pending_screenshot"],

@@ -14,8 +14,21 @@ CHANNEL_IDS = sorted(data_store.channels())
 # ----------------------------------------------------------- derived state
 
 def active_channels(session: dict) -> set[str]:
-    """Channels with any finding (reported/plausible/verified) count as possibly active."""
-    return set(session["findings"])
+    """Channels backed by something the survivor said or showed (interview/screenshot).
+    Inference-only guesses are 'possible explanations to check', not findings, so they
+    never count toward exposure, simulation or the caseworker summary."""
+    return {cid for cid, f in session["findings"].items() if f["basis"] != "inference"}
+
+
+def possible_channels(session: dict) -> set[str]:
+    return {cid for cid, f in session["findings"].items() if f["basis"] == "inference"}
+
+
+def split_findings(session: dict) -> tuple[list[dict], list[dict]]:
+    """(findings, possible explanations to check), both validated, in insertion order."""
+    checked, _ = validator.validate_findings(list(session["findings"].values()))
+    return ([f for f in checked if f["basis"] != "inference"],
+            [f for f in checked if f["basis"] == "inference"])
 
 
 def screen_for(channel_id: str) -> str | None:
@@ -221,7 +234,9 @@ TOOLS = [
     {"name": "record_finding",
      "description": "Add or update a possible access channel. evidence_level: 'reported' "
                     "(they told you), 'plausible' (fits the facts), 'verified' (only after "
-                    "they confirmed a screenshot reading in the app). Use status "
+                    "they confirmed a screenshot reading in the app). basis 'inference' means "
+                    "only you suspect it; it is shown as a possible explanation to check, not "
+                    "as a finding, and doesn't count toward exposure. Use status "
                     "'ruled_out' when evidence shows a channel is NOT active.",
      "input_schema": _obj({"channel_id": {"type": "string", "enum": CHANNEL_IDS},
                            "evidence_level": {"type": "string",
